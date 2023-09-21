@@ -23,7 +23,7 @@ You will now need to set up the database that the project uses.
 If postgres is installed correctly, the following steps should work.
 
 1. Enter ```psql postgres``` in the terminal.
-2. Run ```create database arbitrage;```.
+2. Run ```create database arbitrage_db;```.
 
 ### TODO: Add specifics on what .env configuration should be
 

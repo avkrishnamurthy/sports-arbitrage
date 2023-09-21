@@ -1,0 +1,13 @@
+body {
+  /* -moz-transform: scale(0.8, 0.8);  */
+  zoom: 0.8; 
+  zoom: 80%; 
+}
+
+.page-title {
+  color: White;
+}
+
+.navbar {
+  background-image: linear-gradient(black, rgba(68, 66, 66, 0.672));
+}

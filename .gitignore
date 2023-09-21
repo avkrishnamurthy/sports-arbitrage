@@ -1,0 +1,6 @@
+__pycache__
+website/__pycache__
+.cache
+.env
+.flask_session
+*.pyc

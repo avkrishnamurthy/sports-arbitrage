@@ -54,3 +54,36 @@ def upcoming_odds():
     )
     data = requests.get(request_url)
     return data.json()
+
+# VARIABLES
+SPORT = "americanfootball_nfl"
+DAYS_FROM = "3"
+# API CALL
+def get_api_data():
+    request_url = "https://api.the-odds-api.com/v4/sports/{sport}/scores/?apiKey={api_key}&daysFrom={DAYS_FROM}".format(
+    sport = SPORT,
+    api_key= API_KEY,
+    days_from = DAYS_FROM
+    )
+    response = requests.get(request_url)
+    data = response.json()
+
+
+# HELPER FUNCTION TO PARSE API JSON RESPONSE
+def extract_scores(item):
+    home_score = None
+    away_score = None
+    if item['scores']:
+        for score in item['scores']:
+            if score['name'] == item['home_team']:
+                home_score = int(score['score'])
+            elif score['name'] == item['away_team']:
+                away_score = int(score['score'])
+    return home_score, away_score
+
+
+def insert_scores():
+    data = get_api_data()
+    for item in data:
+        home_score, away_score = extract_scores(item)
+        Games.add_game(item['id'], item['sport_key'], item['sport_title'], item['commence_time'], item['completed'], item['home_team'], item['away_team'], home_score, away_score, item['last_update'])

@@ -1,0 +1,60 @@
+{% extends "base.html" %} 
+{% block title %}Search Odds{% endblock %} 
+{% block content %}
+<html>
+<head>
+    <title>Search Odds</title>
+</head>
+<body>
+    
+    <h1>Search Odds</h1>
+
+    <form method="post" action="{{ url_for('lines.call_insert_odds') }}">
+        <input type="submit" value="Fetch new odds data">
+    </form>
+    <br>
+    <form method="post">
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date">
+
+        <label for="team">Team:</label>
+        <input type="text" id="team" name="team">
+
+        <label for="bookmaker">Bookmaker:</label>
+        <input type="text" id="bookmaker" name="bookmaker">
+
+        <input type="submit" value="Search">
+    </form>
+
+    {% if odds %}
+        <h2>Results:</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Game</th>
+                    <th>Bookmaker</th>
+                    <th>Home Odds</th>
+                    <th>Away Odds</th>
+                    <th>Draw Odds</th>
+                    <th>Last Update</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for odd in odds %}
+                <tr>
+                    <td>{{ odd.game.home_team }} vs {{ odd.game.away_team }}</td>
+                    <td>{{ odd.bookmaker.title }}</td>
+                    <td>{{ odd.home_team_odds }}</td>
+                    <td>{{ odd.away_team_odds }}</td>
+                    <td>{{ odd.draw_odds }}</td>
+                    <td>{{ odd.last_update }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No odds found.</p>
+    {% endif %}
+</body>
+</html>
+{% endblock %}

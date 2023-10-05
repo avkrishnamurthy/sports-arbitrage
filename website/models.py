@@ -1,6 +1,8 @@
 from . import db
 from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import func
+from sqlalchemy import UniqueConstraint
 
 class Person(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -20,3 +22,23 @@ class Games(db.Model):
     home_team_score = db.Column(db.Integer, nullable=True)
     away_team_score = db.Column(db.Integer, nullable=True)
     last_update = db.Column(db.DateTime(timezone=True), nullable=True)
+
+class Odds(db.Model):
+    __table_args__ = (UniqueConstraint('game_id', 'bookmaker_id', name='_game_bookmaker_uc'), )
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
+    game_id = db.Column(db.String, db.ForeignKey('games.id'), nullable=False)
+    bookmaker_id = db.Column(db.Integer, db.ForeignKey('bookmakers.id'), nullable=False)
+    game = db.relationship('Games', backref='odds_games')
+    bookmaker = db.relationship('Bookmakers', backref='odds_bookmakers')
+    sport_key = db.Column(db.Text, nullable=False)
+    sport_title = db.Column(db.Text, nullable=False)
+    home_team_odds = db.Column(db.Integer, nullable=True)  
+    away_team_odds = db.Column(db.Integer, nullable=True)  
+    draw_odds = db.Column(db.Integer, nullable=True)       
+    last_update = db.Column(db.DateTime(timezone=True), nullable=True)
+
+class Bookmakers(db.Model):
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
+    key = db.Column(db.Text, nullable=False)
+    title = db.Column(db.Text, nullable=False)
+

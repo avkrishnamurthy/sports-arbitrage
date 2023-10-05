@@ -118,22 +118,12 @@ def sports():
     data = data.json()
     return data
 
-@lines_.route('/lines/scores')
-@login_required
-def scores():
-    current_date = datetime.now().date()
-    games_today = db.session.query(Games).filter(func.date(Games.commence_time) > current_date).all()
-    if len(games_today) == 0: 
-        insert_scores()
-    return games_today[0].home_team
-
-
 @lines_.route('/insert_scores', methods=['POST'])
 def call_insert_scores():
     insert_scores() 
     return redirect(url_for('lines.search_games'))
 
-@lines_.route('/search_games', methods=['GET', 'POST'])
+@lines_.route('/lines/games', methods=['GET', 'POST'])
 def search_games():
     games = []
     if request.method == 'POST':
@@ -237,20 +227,6 @@ def insert_odds():
 
     db.session.commit()
 
-def get_or_create(session, model, defaults=None, **kwargs):
-    """
-    Gets an object or creates and returns the object if not exists
-    """
-    instance = session.query(model).filter_by(**kwargs).one_or_none()
-    if instance:
-        return instance, False
-    else:
-        params = {**kwargs, **(defaults or {})}
-        instance = model(**params)
-        session.add(instance)
-        session.commit()
-        return instance, True
-
 @lines_.route('/insert_odds', methods=['POST'])
 def call_insert_odds():
     insert_odds() 
@@ -278,3 +254,18 @@ def odds():
         odds = query.all()
 
     return render_template('odds.html', odds=odds, user=current_user)
+
+
+def get_or_create(session, model, defaults=None, **kwargs):
+    """
+    Gets an object or creates and returns the object if not exists
+    """
+    instance = session.query(model).filter_by(**kwargs).one_or_none()
+    if instance:
+        return instance, False
+    else:
+        params = {**kwargs, **(defaults or {})}
+        instance = model(**params)
+        session.add(instance)
+        session.commit()
+        return instance, True

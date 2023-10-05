@@ -27,10 +27,12 @@ def create_app():
     from .auth.auth import auth
     from .home.home import home_
     from .lines.lines import lines_
+    from .users.users import users_
 
     app.register_blueprint(auth, url_prefix='/')
     app.register_blueprint(home_, url_prefix='/')
     app.register_blueprint(lines_, url_prefix='/')
+    app.register_blueprint(users_, url_prefix='/')
 
     from .models import Person
     

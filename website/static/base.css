@@ -8,6 +8,16 @@ body {
   color: White;
 }
 
+.search-user-error {
+  display: none;
+  color: red;
+  margin-top: 5px;
+}
+
+.search-user-error-show {
+  display: block;
+}
+
 .navbar {
   background-image: linear-gradient(black, rgba(68, 66, 66, 0.672));
 }

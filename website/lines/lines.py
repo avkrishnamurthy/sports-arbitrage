@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
 from website import db
@@ -5,6 +6,11 @@ import requests
 import json
 import os
 from dotenv import load_dotenv
+from website.models import Games
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import func
+from sqlalchemy import or_
+
 
 
 
@@ -26,47 +32,20 @@ SPORTS = [
     "baseball_mlb",
 ]
 
-
-@lines_.route('/lines')
-@login_required
-def lines():
-    return render_template("lines.html", user=current_user)
-
-
-@lines_.route('/lines/sports')
-@login_required
-def sports():
-    request_url = f"https://api.the-odds-api.com/v4/sports?apiKey={API_KEY}"
-    data = requests.get(request_url)
-    data = data.json()
-    return data
-
-@lines_.route('/lines/odds')
-@login_required
-def upcoming_odds():
-
-    request_url = "https://api.the-odds-api.com/v4/sports/{sport}/odds/?regions={regions}&oddsFormat={odds_format}&markets={markets}&apiKey={api_key}".format(
-        sport="upcoming",
-        api_key=API_KEY,
-        markets=MARKETS,
-        regions=REGIONS,
-        odds_format=ODDS_FORMAT,
-    )
-    data = requests.get(request_url)
-    return data.json()
-
 # VARIABLES
 SPORT = "americanfootball_nfl"
 DAYS_FROM = "3"
+
 # API CALL
 def get_api_data():
-    request_url = "https://api.the-odds-api.com/v4/sports/{sport}/scores/?apiKey={api_key}&daysFrom={DAYS_FROM}".format(
+    request_url = "https://api.the-odds-api.com/v4/sports/{sport}/scores/?apiKey={api_key}&daysFrom={days_from}".format(
     sport = SPORT,
     api_key= API_KEY,
     days_from = DAYS_FROM
     )
     response = requests.get(request_url)
     data = response.json()
+    return data
 
 
 # HELPER FUNCTION TO PARSE API JSON RESPONSE
@@ -84,6 +63,82 @@ def extract_scores(item):
 
 def insert_scores():
     data = get_api_data()
+    if not data:
+        return
+    
     for item in data:
         home_score, away_score = extract_scores(item)
-        Games.add_game(item['id'], item['sport_key'], item['sport_title'], item['commence_time'], item['completed'], item['home_team'], item['away_team'], home_score, away_score, item['last_update'])
+        item['home_team_score'] = home_score
+        item['away_team_score'] = away_score
+        stmt = insert(Games).values(
+        id=item['id'],
+        sport_key=item['sport_key'],
+        sport_title=item['sport_title'],
+        commence_time=item['commence_time'],
+        completed=item['completed'],
+        home_team=item['home_team'],
+        away_team=item['away_team'],
+        home_team_score=item['home_team_score'],
+        away_team_score=item['away_team_score'],
+        last_update=item['last_update']
+    )
+    
+        update_dict = {
+            Games.sport_key: item['sport_key'],
+            Games.sport_title: item['sport_title'],
+            Games.commence_time: item['commence_time'],
+            Games.completed: item['completed'],
+            Games.home_team: item['home_team'],
+            Games.away_team: item['away_team'],
+            Games.home_team_score: item['home_team_score'],
+            Games.away_team_score: item['away_team_score'],
+            Games.last_update: item['last_update']
+        }
+
+        stmt = stmt.on_conflict_do_update(
+            index_elements=[Games.id],
+            set_=update_dict,
+            where=(Games.last_update.is_(None)
+        ))
+
+        db.session.execute(stmt)
+    db.session.commit()
+
+@lines_.route('/lines')
+@login_required
+def lines():
+    return render_template("lines.html", user=current_user)
+
+
+@lines_.route('/lines/sports')
+@login_required
+def sports():
+    request_url = f"https://api.the-odds-api.com/v4/sports?apiKey={API_KEY}"
+    data = requests.get(request_url)
+    data = data.json()
+    return data
+
+@lines_.route('/lines/scores')
+@login_required
+def scores():
+    current_date = datetime.now().date()
+    games_today = db.session.query(Games).filter(func.date(Games.commence_time) > current_date).all()
+    if len(games_today) == 0: 
+        insert_scores()
+    return games_today[0].home_team
+
+
+@lines_.route('/lines/odds')
+@login_required
+def upcoming_odds():
+
+    request_url = "https://api.the-odds-api.com/v4/sports/{sport}/odds/?regions={regions}&oddsFormat={odds_format}&markets={markets}&apiKey={api_key}&commenceTimeFrom=".format(
+        sport="upcoming",
+        api_key=API_KEY,
+        markets=MARKETS,
+        regions=REGIONS,
+        odds_format=ODDS_FORMAT,
+    )
+    data = requests.get(request_url)
+    return data.json()
+

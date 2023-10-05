@@ -4,3 +4,5 @@ website/__pycache__
 .env
 .flask_session
 *.pyc
+README.txt
+tmp.py

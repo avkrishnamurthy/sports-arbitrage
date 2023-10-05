@@ -38,14 +38,17 @@ DAYS_FROM = "3"
 
 # API CALL
 def get_api_data():
-    request_url = "https://api.the-odds-api.com/v4/sports/{sport}/scores/?apiKey={api_key}&daysFrom={days_from}".format(
-    sport = SPORT,
-    api_key= API_KEY,
-    days_from = DAYS_FROM
-    )
-    response = requests.get(request_url)
-    data = response.json()
-    return data
+    data_list = []
+    for sport in SPORTS:
+        request_url = "https://api.the-odds-api.com/v4/sports/{sport}/scores/?apiKey={api_key}&daysFrom={days_from}".format(
+        sport = sport,
+        api_key= API_KEY,
+        days_from = DAYS_FROM
+        )
+        response = requests.get(request_url)
+        data = response.json()
+        data_list.append(data)
+    return data_list
 
 
 # HELPER FUNCTION TO PARSE API JSON RESPONSE
@@ -62,46 +65,47 @@ def extract_scores(item):
 
 
 def insert_scores():
-    data = get_api_data()
-    if not data:
+    data_list = get_api_data()
+    if not data_list:
         return
-    
-    for item in data:
-        home_score, away_score = extract_scores(item)
-        item['home_team_score'] = home_score
-        item['away_team_score'] = away_score
-        stmt = insert(Games).values(
-        id=item['id'],
-        sport_key=item['sport_key'],
-        sport_title=item['sport_title'],
-        commence_time=item['commence_time'],
-        completed=item['completed'],
-        home_team=item['home_team'],
-        away_team=item['away_team'],
-        home_team_score=item['home_team_score'],
-        away_team_score=item['away_team_score'],
-        last_update=item['last_update']
-    )
-    
-        update_dict = {
-            Games.sport_key: item['sport_key'],
-            Games.sport_title: item['sport_title'],
-            Games.commence_time: item['commence_time'],
-            Games.completed: item['completed'],
-            Games.home_team: item['home_team'],
-            Games.away_team: item['away_team'],
-            Games.home_team_score: item['home_team_score'],
-            Games.away_team_score: item['away_team_score'],
-            Games.last_update: item['last_update']
-        }
+    for data in data_list:
+        if not data: continue
+        for item in data:
+            home_score, away_score = extract_scores(item)
+            item['home_team_score'] = home_score
+            item['away_team_score'] = away_score
+            stmt = insert(Games).values(
+            id=item['id'],
+            sport_key=item['sport_key'],
+            sport_title=item['sport_title'],
+            commence_time=item['commence_time'],
+            completed=item['completed'],
+            home_team=item['home_team'],
+            away_team=item['away_team'],
+            home_team_score=item['home_team_score'],
+            away_team_score=item['away_team_score'],
+            last_update=item['last_update']
+        )
+        
+            update_dict = {
+                Games.sport_key: item['sport_key'],
+                Games.sport_title: item['sport_title'],
+                Games.commence_time: item['commence_time'],
+                Games.completed: item['completed'],
+                Games.home_team: item['home_team'],
+                Games.away_team: item['away_team'],
+                Games.home_team_score: item['home_team_score'],
+                Games.away_team_score: item['away_team_score'],
+                Games.last_update: item['last_update']
+            }
 
-        stmt = stmt.on_conflict_do_update(
-            index_elements=[Games.id],
-            set_=update_dict,
-            where=(Games.last_update.is_(None)
-        ))
+            stmt = stmt.on_conflict_do_update(
+                index_elements=[Games.id],
+                set_=update_dict,
+                where=(Games.last_update.is_(None)
+            ))
 
-        db.session.execute(stmt)
+            db.session.execute(stmt)
     db.session.commit()
 
 @lines_.route('/lines')
@@ -126,6 +130,37 @@ def scores():
     if len(games_today) == 0: 
         insert_scores()
     return games_today[0].home_team
+
+
+@lines_.route('/insert_scores', methods=['POST'])
+def call_insert_scores():
+    insert_scores()  # Assuming insert_scores is defined elsewhere in your app
+    return redirect(url_for('lines.search_games'))  # Redirect back to the search games page after inserting scores
+
+@lines_.route('/search_games', methods=['GET', 'POST'])
+def search_games():
+    games = []
+    if request.method == 'POST':
+        query = db.session.query(Games)
+        
+        # Filtering based on user input
+        date_query = request.form.get('date')
+        if date_query:
+            date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
+            query = query.filter(func.DATE(Games.commence_time) == date_object)
+            
+        team_query = request.form.get('team')
+        if team_query:
+            query = query.filter((Games.home_team == team_query) | (Games.away_team == team_query))
+            
+        sport_title_query = request.form.get('sport_title')
+        if sport_title_query:
+            query = query.filter(Games.sport_title == sport_title_query)
+            
+        games = query.all()
+    
+    return render_template('games.html', games=games, user=current_user)
+
 
 
 @lines_.route('/lines/odds')

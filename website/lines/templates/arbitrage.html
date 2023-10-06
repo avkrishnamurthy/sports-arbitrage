@@ -1,0 +1,58 @@
+{% extends "base.html" %} 
+{% block title %}Search Odds{% endblock %} 
+{% block content %}
+<html>
+<head>
+    <title>Search Arbitrage Opportunities</title>
+</head>
+<body>
+    
+    <h1>Search Arbitrage Opportunities</h1>
+
+    <form method="post" action="{{ url_for('lines.call_insert_arbitrage') }}">
+        <input type="submit" value="Fetch new arbitrages">
+    </form>
+    <br>
+    <form method="post">
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date">
+
+        <label for="team">Team:</label>
+        <input type="text" id="team" name="team">
+
+        <input type="submit" value="Search">
+    </form>
+
+    {% if arbitrages %}
+        <h2>Results:</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Game</th>
+                    <th>Bookmaker 1</th>
+                    <th>Home Odds</th>
+                    <th>Bookmaker 2</th>
+                    <th>Away Odds</th>
+                    <th>Profit Margin</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for arb in arbitrages %}
+                <tr>
+                    <td>{{ arb.game.home_team }} vs {{ arb.game.away_team }}</td>
+                    <td>{{ arb.home_odds.bookmaker.title }}</td>
+                    <td>{{ arb.home_odds.home_team_odds }}</td>
+                    <td>{{ arb.away_odds.bookmaker.title }}</td>
+                    <td>{{ arb.away_odds.away_team_odds }}</td>
+                    <td>{{ arb.profit_percentage }}</td>
+                    <td>{{ arb.last_update }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No arbitrage opportunities found.</p>
+    {% endif %}
+</body>
+</html>
+{% endblock %}

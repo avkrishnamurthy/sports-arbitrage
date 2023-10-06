@@ -6,11 +6,13 @@ import requests
 import json
 import os
 from dotenv import load_dotenv
-from website.models import Games, Bookmakers, Odds
+from website.models import Games, Bookmakers, Odds, ArbitrageOpportunity
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import func
 from sqlalchemy import or_
 from sqlalchemy.orm.exc import NoResultFound
+from . import arbitrage
+
 
 lines_ = Blueprint('lines', __name__, template_folder='templates', static_url_path='lines/', static_folder='static')
 
@@ -174,7 +176,6 @@ def insert_odds():
         for item in data:
             if not item: continue
             # Check if the game_id exists in the Games table
-            print(item)
             game_id = item['id']
             try:
                 game = db.session.query(Games).filter_by(id=game_id).one()
@@ -230,7 +231,7 @@ def insert_odds():
 @lines_.route('/insert_odds', methods=['POST'])
 def call_insert_odds():
     insert_odds() 
-    return redirect(url_for('lines.search_odds'))
+    return redirect(url_for('lines.odds'))
 
 
 @lines_.route('/lines/odds', methods=['GET', 'POST'])
@@ -254,6 +255,31 @@ def odds():
         odds = query.all()
 
     return render_template('odds.html', odds=odds, user=current_user)
+
+
+@lines_.route('/insert_arbitrage', methods=['POST'])
+def call_insert_arbitrage():
+    arbitrage.insert_arbitrage() 
+    return redirect(url_for('lines.arbitrage_opportunities'))
+
+@lines_.route('/lines/arbitrage', methods=['GET', 'POST'])
+def arbitrage_opportunities():
+    
+    opps = []
+    if request.method == 'POST':
+        query = db.session.query(ArbitrageOpportunity).join(Games).join(Odds).join(Bookmakers)
+        date_query = request.form.get('date')
+        if date_query:
+            date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
+            query = query.filter(func.DATE(Games.commence_time) == date_object)
+            
+        team_query = request.form.get('team')
+        if team_query:
+            query = query.filter((Games.home_team == team_query) | (Games.away_team == team_query))
+        
+        opps = query.all()
+    return render_template('arbitrage.html', user=current_user, arbitrages=opps)
+
 
 
 def get_or_create(session, model, defaults=None, **kwargs):

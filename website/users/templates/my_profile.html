@@ -13,6 +13,12 @@
         <p>Email: {{current_user.email}}</p>
         <p>username: {{current_user.username}}</p>
         <img src={{favorite_bookmaker.image}}>
+        <p>Favorite Team: {{current_user.favorite_team}} 
+            <form method="post" action="{{ url_for('users.favorite_team', username=current_user.username) }}">
+                <label for="team">Update</label>
+                <input type="text" id="team" name="team">
+                <input type="submit" value="Search">
+            </form>
         <div class="dropdown">
             <button id="dropbtn" class="dropbtn">Update Favorite Bookmaker</button>
             <div id="bookmakerDropdown" class="dropdown-content">

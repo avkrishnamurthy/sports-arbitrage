@@ -136,9 +136,13 @@ def search_games():
             date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
             query = query.filter(func.DATE(Games.commence_time) == date_object)
             
-        team_query = request.form.get('team')
-        if team_query:
-            query = query.filter((Games.home_team == team_query) | (Games.away_team == team_query))
+        team1_query = request.form.get('team1')
+        if team1_query:
+            query = query.filter((Games.home_team == team1_query) | (Games.away_team == team1_query))
+            
+        team2_query = request.form.get('team2')
+        if team2_query:
+            query = query.filter((Games.home_team == team2_query) | (Games.away_team == team2_query))
             
         sport_title_query = request.form.get('sport_title')
         if sport_title_query:
@@ -244,9 +248,13 @@ def odds():
             date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
             query = query.filter(func.DATE(Games.commence_time) == date_object)
             
-        team_query = request.form.get('team')
-        if team_query:
-            query = query.filter((Games.home_team == team_query) | (Games.away_team == team_query))
+        team1_query = request.form.get('team1')
+        if team1_query:
+            query = query.filter((Games.home_team == team1_query) | (Games.away_team == team1_query))
+            
+        team2_query = request.form.get('team2')
+        if team2_query:
+            query = query.filter((Games.home_team == team2_query) | (Games.away_team == team2_query))
             
         bookmaker_query = request.form.get('bookmaker')
         if bookmaker_query:

@@ -42,16 +42,10 @@ def profile(username):
 @login_required
 def favorite_team(username):
     user = Person.query.filter_by(username=username).first()
-    favorite_json = json.loads(request.data)
-    favorite_id = favorite_json['favoriteId']
-    # user.favorite_bookmaker_
-    # if favorite:
-    #     if favorite.user_id == current_user.id:
-    #         db.session.delete(favorite)
-    #         db.session.commit()
-    # return jsonify({})
-    # db.session.commit()
-    return
+    team_info = request.form.get('team')
+    user.favorite_team = team_info
+    db.session.commit()
+    return redirect(url_for('users.profile', username=username))
 
 @users_.route('users/<username>/bookmaker', methods=['POST'])
 @login_required

@@ -6,7 +6,7 @@ import requests
 import json
 import os
 from dotenv import load_dotenv
-from website.models import Bookmakers, Person
+from website.models import Bookmakers, Person, Games
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import func
 from sqlalchemy.orm.exc import NoResultFound
@@ -34,7 +34,11 @@ def profile(username):
 
     if current_user.username == username: 
         bookmakers = Bookmakers.query.all()
-        return render_template('my_profile.html', current_user = current_user, favorite_bookmaker=favorite_bookmaker, bookmakers=bookmakers)
+        games = None
+        if current_user.favorite_team:
+            now = datetime.now()
+            games = Games.query.filter(((Games.home_team.ilike("%" + current_user.favorite_team + "%")) | (Games.away_team.ilike("%" + current_user.favorite_team + "%"))) & (Games.commence_time > now))
+        return render_template('my_profile.html', current_user = current_user, favorite_bookmaker=favorite_bookmaker, bookmakers=bookmakers, games=games)
     return render_template('profile.html', current_user = current_user, user=user, favorite_bookmaker=favorite_bookmaker)
 
 

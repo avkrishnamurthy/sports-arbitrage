@@ -135,18 +135,18 @@ def search_games():
         if date_query:
             date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
             query = query.filter(func.DATE(Games.commence_time) == date_object)
-            
+        
         team1_query = request.form.get('team1')
         if team1_query:
-            query = query.filter((Games.home_team == team1_query) | (Games.away_team == team1_query))
+            query = query.filter((Games.home_team.ilike('%' + team1_query + '%')) | (Games.away_team.ilike('%' + team1_query + '%')))
             
         team2_query = request.form.get('team2')
         if team2_query:
-            query = query.filter((Games.home_team == team2_query) | (Games.away_team == team2_query))
+            query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
             
         sport_title_query = request.form.get('sport_title')
         if sport_title_query:
-            query = query.filter(Games.sport_title == sport_title_query)
+            query = query.filter(Games.sport_title.ilike('%' + sport_title_query + '%'))
             
         games = query.all()
     
@@ -250,15 +250,15 @@ def odds():
             
         team1_query = request.form.get('team1')
         if team1_query:
-            query = query.filter((Games.home_team == team1_query) | (Games.away_team == team1_query))
+            query = query.filter((Games.home_team.ilike('%' + team1_query + '%')) | (Games.away_team.ilike('%' + team1_query + '%')))
             
         team2_query = request.form.get('team2')
         if team2_query:
-            query = query.filter((Games.home_team == team2_query) | (Games.away_team == team2_query))
+            query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
             
         bookmaker_query = request.form.get('bookmaker')
         if bookmaker_query:
-            query = query.filter(Bookmakers.title == bookmaker_query)
+            query = query.filter(Bookmakers.title.ilike('%' + bookmaker_query + '%'))
         
         odds = query.all()
 
@@ -281,9 +281,13 @@ def arbitrage_opportunities():
             date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
             query = query.filter(func.DATE(Games.commence_time) == date_object)
             
-        team_query = request.form.get('team')
-        if team_query:
-            query = query.filter((Games.home_team == team_query) | (Games.away_team == team_query))
+        team1_query = request.form.get('team1')
+        if team1_query:
+            query = query.filter((Games.home_team.ilike('%' + team1_query + '%')) | (Games.away_team.ilike('%' + team1_query + '%')))
+            
+        team2_query = request.form.get('team2')
+        if team2_query:
+            query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
         
         opps = query.all()
     return render_template('arbitrage.html', user=current_user, arbitrages=opps)

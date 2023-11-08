@@ -27,6 +27,29 @@
                 {% endfor %}
             </div>
         </div>
+        {% if games %}
+        <h2>Upcoming {{current_user.favorite_team}} Games:</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sport</th>
+                    <th>Home Team</th>
+                    <th>Away Team</th>
+                    <th>Commence Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for game in games %}
+                <tr>
+                    <td>{{ game.sport_title }}</td>
+                    <td>{{ game.home_team }}</td>
+                    <td>{{ game.away_team }}</td>
+                    <td>{{ game.commence_time }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
     {% else %}
         <p>No user found.</p>
     {% endif %}

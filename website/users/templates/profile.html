@@ -11,7 +11,8 @@
         <p>First Name: {{user.first_name}}</p>
         <p>Email: {{user.email}}</p>
         <img src={{favorite_bookmaker.image}}>
-        <p>Favorite Team: {{current_user.favorite_team}} 
+        <p>Favorite Team: {{user.favorite_team}} 
+        
     {% else %}
         <p>No user found.</p>
     {% endif %}

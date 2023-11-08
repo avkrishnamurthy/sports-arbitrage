@@ -31,7 +31,7 @@
       <div class="collapse navbar-collapse" id="navbar">
         <h1 class="page-title">Sports Arbitrage</h1>
         <div class="navbar-nav ml-auto">
-          {% if user.is_authenticated %}
+          {% if current_user.is_authenticated %}
           <a class="nav-item nav-link" id="home" href="/home">Home</a>
           <div class="nav-item dropdown">
             <a

@@ -6,12 +6,12 @@ import requests
 import json
 import os
 from dotenv import load_dotenv
-from website.models import Person
+from website.models import Bookmakers, Person
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import func
 from sqlalchemy.orm.exc import NoResultFound
 
-users_ = Blueprint('users', __name__, template_folder='templates', static_url_path='users/', static_folder='static')
+users_ = Blueprint('users', __name__, template_folder='templates', static_url_path='users/static', static_folder='static')
 
 load_dotenv()
 
@@ -27,8 +27,38 @@ def check_user_exists():
 @login_required
 def profile(username):
     user = Person.query.filter_by(username=username).first()
+    favorite_bookmaker = Bookmakers.query.filter_by(id=user.favorite_bookmaker_id).first()
     if not user: 
         flash("User does not exist", category="error")
         return redirect(url_for("home.home", _external=True))
 
-    return render_template('profile.html', current_user = current_user, user=user)
+    if current_user.username == username: 
+        bookmakers = Bookmakers.query.all()
+        return render_template('my_profile.html', current_user = current_user, favorite_bookmaker=favorite_bookmaker, bookmakers=bookmakers)
+    return render_template('profile.html', current_user = current_user, user=user, favorite_bookmaker=favorite_bookmaker)
+
+
+@users_.route('users/<username>/team', methods=['POST'])
+@login_required
+def favorite_team(username):
+    user = Person.query.filter_by(username=username).first()
+    favorite_json = json.loads(request.data)
+    favorite_id = favorite_json['favoriteId']
+    # user.favorite_bookmaker_
+    # if favorite:
+    #     if favorite.user_id == current_user.id:
+    #         db.session.delete(favorite)
+    #         db.session.commit()
+    # return jsonify({})
+    # db.session.commit()
+    return
+
+@users_.route('users/<username>/bookmaker', methods=['POST'])
+@login_required
+def favorite_bookmaker(username):
+    user = Person.query.filter_by(username=username).first()
+    favorite_json = json.loads(request.data)
+    favorite_id = favorite_json['favoriteId']
+    user.favorite_bookmaker_id = favorite_id
+    db.session.commit()
+    return jsonify({})

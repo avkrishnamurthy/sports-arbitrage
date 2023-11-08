@@ -1,0 +1,29 @@
+{% extends "base.html" %} {% block title %}Profile{% endblock %} {% block content
+    %}
+    <link
+      rel="stylesheet"
+      href="{{url_for('users.static', filename='my_profile.css')}}">
+<head>
+    <title>Profile</title>
+</head>
+<body>
+    {% if current_user %}
+    <h1>My Profile</h1>
+        <p>First Name: {{current_user.first_name}}</p>
+        <p>Email: {{current_user.email}}</p>
+        <p>username: {{current_user.username}}</p>
+        <img src={{favorite_bookmaker.image}}>
+        <div class="dropdown">
+            <button id="dropbtn" class="dropbtn">Update Favorite Bookmaker</button>
+            <div id="bookmakerDropdown" class="dropdown-content">
+                {% for bookmaker in bookmakers %}
+                <button id="bookmaker-button" onclick="setFavorite('{{ current_user.username}}', '{{bookmaker.id }}')" class="set-favorite-bookmaker-{{bookmaker.id}}">{{bookmaker.title}}</button>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <p>No user found.</p>
+    {% endif %}
+</body>
+<script src="{{url_for('users.static', filename='my_profile.js')}}"></script>
+{% endblock %}

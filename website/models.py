@@ -10,6 +10,8 @@ class Person(db.Model, UserMixin):
     username = db.Column(db.Text, unique=True)
     password = db.Column(db.Text)
     first_name = db.Column(db.String(150))
+    favorite_team = db.Column(db.String(150), nullable=True)
+    favorite_bookmaker_id = db.Column(db.ForeignKey('bookmakers.id'), nullable=True)
 
 class Games(db.Model):
     id = db.Column(db.String(32), primary_key=True, nullable=False)
@@ -41,6 +43,7 @@ class Bookmakers(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     key = db.Column(db.Text, nullable=False)
     title = db.Column(db.Text, nullable=False)
+    image = db.Column(db.Text, nullable=True)
 
 
 class ArbitrageOpportunity(db.Model):

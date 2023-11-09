@@ -1,3 +1,7 @@
+function profile(username) {
+    window.location.href = `/users/${username}`;
+}
+
 function handleSearchUserFormSubmit(event) {
     event.preventDefault();
 

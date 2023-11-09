@@ -36,6 +36,8 @@
                     <th>Home Team</th>
                     <th>Away Team</th>
                     <th>Commence Time</th>
+                    <th>Home Team Odds</th>
+                    <th>Away Team Odds</th>
                 </tr>
             </thead>
             <tbody>
@@ -45,8 +47,11 @@
                     <td>{{ game.home_team }}</td>
                     <td>{{ game.away_team }}</td>
                     <td>{{ game.commence_time }}</td>
+                    <td>{{game.home_team_odds}}</td>
+                    <td>{{game.away_team_odds}}</td>
                 </tr>
                 {% endfor %}
+
             </tbody>
         </table>
         {% endif %}

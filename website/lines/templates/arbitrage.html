@@ -30,6 +30,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>Arbitrage ID</th>
                     <th>Game</th>
                     <th>Bookmaker 1</th>
                     <th>Home Odds</th>
@@ -57,13 +58,14 @@
                 
                 {% for arb in arbitrages %}
                 <tr>
-                    <td>{{ arb.game.home_team }} vs {{ arb.game.away_team }}</td>
-                    <td>{{ arb.home_odds.bookmaker.title }}</td>
-                    <td>{{ arb.home_odds.home_team_odds }}</td>
-                    <td>{{ arb.away_odds.bookmaker.title }}</td>
-                    <td>{{ arb.away_odds.away_team_odds }}</td>
-                    <td>{{ arb.profit_percentage }}</td>
-                    <td>{{ arb.last_update }}</td>
+                    <td>{{arb[0].id}}</td>
+                    <td>{{ arb[1].home_team }} vs {{ arb[1].away_team }}</td>
+                    <td>{{ arb[2].bookmaker.title }}</td>
+                    <td>{{ arb[2].home_team_odds }}</td>
+                    <td>{{ arb[3].bookmaker.title }}</td>
+                    <td>{{ arb[3].away_team_odds }}</td>
+                    <td>{{ arb[0].profit_percentage }}</td>
+                    <td>{{ arb[0].last_update }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

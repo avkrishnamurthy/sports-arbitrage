@@ -6,10 +6,12 @@ import requests
 import json
 import os
 from dotenv import load_dotenv
-from website.models import Bookmakers, Person, Games
+from website.models import Bookmakers, Odds, Person, Games
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import func
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import contains_eager
 
 users_ = Blueprint('users', __name__, template_folder='templates', static_url_path='users/static', static_folder='static')
 
@@ -23,7 +25,7 @@ def check_user_exists():
     return jsonify({'exists': user_exists})
 
 
-@users_.route('/users/<username>', methods=['GET', 'POST'])
+@users_.route('/users/<username>', methods=['GET'])
 @login_required
 def profile(username):
     user = Person.query.filter_by(username=username).first()
@@ -37,8 +39,26 @@ def profile(username):
         games = None
         if current_user.favorite_team:
             now = datetime.now()
-            games = Games.query.filter(((Games.home_team.ilike("%" + current_user.favorite_team + "%")) | (Games.away_team.ilike("%" + current_user.favorite_team + "%"))) & (Games.commence_time > now))
-        return render_template('my_profile.html', current_user = current_user, favorite_bookmaker=favorite_bookmaker, bookmakers=bookmakers, games=games)
+            games_odds = db.session.query(Games) \
+                .outerjoin(Odds, Games.id == Odds.game_id) \
+                .add_columns(
+                    Games.id,
+                    Games.sport_key,
+                    Games.sport_title,
+                    Games.commence_time,
+                    Games.completed,
+                    Games.home_team,
+                    Games.away_team,
+                    Games.home_team_score,
+                    Games.away_team_score,
+                    Games.last_update,
+                    Odds.home_team_odds,
+                    Odds.away_team_odds ) \
+                .filter((Games.home_team.ilike('%' + current_user.favorite_team + '%')) | (Games.away_team.ilike('%' + current_user.favorite_team + '%'))) \
+                .filter((Games.commence_time > now)) \
+                .filter((Odds.bookmaker_id == current_user.favorite_bookmaker_id) | (Odds.bookmaker_id.is_(None))) \
+                .all()
+        return render_template('my_profile.html', current_user = current_user, favorite_bookmaker=favorite_bookmaker, bookmakers=bookmakers, games=games_odds)
     return render_template('profile.html', current_user = current_user, user=user, favorite_bookmaker=favorite_bookmaker)
 
 

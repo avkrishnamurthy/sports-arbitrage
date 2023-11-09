@@ -12,6 +12,7 @@ from sqlalchemy import func
 from sqlalchemy import or_
 from sqlalchemy.orm.exc import NoResultFound
 from . import arbitrage
+from sqlalchemy.orm import aliased
 
 
 lines_ = Blueprint('lines', __name__, template_folder='templates', static_url_path='lines/', static_folder='static')
@@ -287,17 +288,29 @@ def call_insert_arbitrage():
     arbitrage.insert_arbitrage() 
     return redirect(url_for('lines.arbitrage_opportunities'))
 
-@lines_.route('/lines/arbitrage', methods=['GET', 'POST'])
+@lines_.route('/lines/arbitrage', methods=['GET'])
 def arbitrage_opportunities():
     
     page = request.args.get('page', 1, type=int)
-    per_page = 10
-    query = db.session.query(ArbitrageOpportunity).join(Games).join(Odds).join(Bookmakers)
+    per_page = 5
+    AwayOdds = aliased(Odds)
+
+    query = db.session.query(
+        ArbitrageOpportunity,
+        Games,
+        Odds,
+        AwayOdds
+    ).join(
+        Games, ArbitrageOpportunity.game_id == Games.id
+    ).join(
+        Odds, ArbitrageOpportunity.home_team_odds_id == Odds.id
+    ).join(
+        AwayOdds, ArbitrageOpportunity.away_team_odds_id == AwayOdds.id
+    )
 
     date_query = request.args.get('date')
     team1_query = request.args.get('team1')
     team2_query = request.args.get('team2')
-
     if date_query:
         date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
         query = query.filter(func.DATE(Games.commence_time) == date_object)
@@ -307,11 +320,10 @@ def arbitrage_opportunities():
 
     if team2_query:
         query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
-        
+    
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     arbitrages = pagination.items
-
-    return render_template('arbitrage.html', pagination=pagination, current_user=current_user, arbitrages=arbitrages)
+    return render_template('arbitrage.html', pagination=pagination, arbitrages=arbitrages, current_user=current_user)
 
 
 

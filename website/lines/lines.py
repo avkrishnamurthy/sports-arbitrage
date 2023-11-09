@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
 from website import db
@@ -136,7 +136,18 @@ def search_games():
     team1_query = request.args.get('team1')
     team2_query = request.args.get('team2')
     sport_title_query = request.args.get('sport_title')
+    live_query = request.args.get('live')
 
+    if live_query:
+        now = datetime.now()
+
+        one_day_earlier = now - timedelta(days=1)
+        query = query.filter(
+            (Games.commence_time >= one_day_earlier) & 
+            (Games.commence_time < now) & 
+            (Games.completed == False)
+        )
+        
     if date_query:
         date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
         query = query.filter(func.DATE(Games.commence_time) == date_object)
@@ -149,6 +160,8 @@ def search_games():
 
     if sport_title_query:
         query = query.filter(Games.sport_title.ilike('%' + sport_title_query + '%'))
+
+    
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items

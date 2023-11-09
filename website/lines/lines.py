@@ -125,32 +125,35 @@ def call_insert_scores():
     insert_scores() 
     return redirect(url_for('lines.search_games'))
 
-@lines_.route('/lines/games', methods=['GET', 'POST'])
+@lines_.route('/lines/games', methods=['GET'])
 def search_games():
-    games = []
-    if request.method == 'POST':
-        query = db.session.query(Games)
-        
-        date_query = request.form.get('date')
-        if date_query:
-            date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
-            query = query.filter(func.DATE(Games.commence_time) == date_object)
-        
-        team1_query = request.form.get('team1')
-        if team1_query:
-            query = query.filter((Games.home_team.ilike('%' + team1_query + '%')) | (Games.away_team.ilike('%' + team1_query + '%')))
-            
-        team2_query = request.form.get('team2')
-        if team2_query:
-            query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
-            
-        sport_title_query = request.form.get('sport_title')
-        if sport_title_query:
-            query = query.filter(Games.sport_title.ilike('%' + sport_title_query + '%'))
-            
-        games = query.all()
+
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    query = db.session.query(Games)
+
+    date_query = request.args.get('date')
+    team1_query = request.args.get('team1')
+    team2_query = request.args.get('team2')
+    sport_title_query = request.args.get('sport_title')
+
+    if date_query:
+        date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
+        query = query.filter(func.DATE(Games.commence_time) == date_object)
+
+    if team1_query:
+        query = query.filter((Games.home_team.ilike('%' + team1_query + '%')) | (Games.away_team.ilike('%' + team1_query + '%')))
+
+    if team2_query:
+        query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
+
+    if sport_title_query:
+        query = query.filter(Games.sport_title.ilike('%' + sport_title_query + '%'))
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    games = pagination.items
     
-    return render_template('games.html', games=games, user=current_user)
+    return render_template('games.html', pagination=pagination, games=games, current_user=current_user)
 
 #TODO: make it match current date – needs to be in sync with games fetch
 ODDS_COMMENCE_TIME_FROM = "2023-10-01T00:00:00Z"
@@ -238,32 +241,35 @@ def call_insert_odds():
     return redirect(url_for('lines.odds'))
 
 
-@lines_.route('/lines/odds', methods=['GET', 'POST'])
+@lines_.route('/lines/odds', methods=['GET'])
 def odds():
-    odds = []
-    if request.method == 'POST':
-        query = db.session.query(Odds).join(Games).join(Bookmakers)
-        date_query = request.form.get('date')
-        if date_query:
-            date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
-            query = query.filter(func.DATE(Games.commence_time) == date_object)
-            
-        team1_query = request.form.get('team1')
-        if team1_query:
-            query = query.filter((Games.home_team.ilike('%' + team1_query + '%')) | (Games.away_team.ilike('%' + team1_query + '%')))
-            
-        team2_query = request.form.get('team2')
-        if team2_query:
-            query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
-            
-        bookmaker_query = request.form.get('bookmaker')
-        if bookmaker_query:
-            query = query.filter(Bookmakers.title.ilike('%' + bookmaker_query + '%'))
-        
-        odds = query.all()
 
-    return render_template('odds.html', odds=odds, user=current_user)
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    query = db.session.query(Odds).join(Games).join(Bookmakers)
 
+    date_query = request.args.get('date')
+    team1_query = request.args.get('team1')
+    team2_query = request.args.get('team2')
+    bookmaker_query = request.args.get('bookmaker')
+
+    if date_query:
+        date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
+        query = query.filter(func.DATE(Games.commence_time) == date_object)
+
+    if team1_query:
+        query = query.filter((Games.home_team.ilike('%' + team1_query + '%')) | (Games.away_team.ilike('%' + team1_query + '%')))
+
+    if team2_query:
+        query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
+
+    if bookmaker_query:
+        query = query.filter(Bookmakers.title.ilike(f'%{bookmaker_query}%'))
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    odds = pagination.items
+
+    return render_template('odds.html', pagination=pagination, odds=odds, current_user=current_user)
 
 @lines_.route('/insert_arbitrage', methods=['POST'])
 def call_insert_arbitrage():
@@ -273,24 +279,28 @@ def call_insert_arbitrage():
 @lines_.route('/lines/arbitrage', methods=['GET', 'POST'])
 def arbitrage_opportunities():
     
-    opps = []
-    if request.method == 'POST':
-        query = db.session.query(ArbitrageOpportunity).join(Games).join(Odds).join(Bookmakers)
-        date_query = request.form.get('date')
-        if date_query:
-            date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
-            query = query.filter(func.DATE(Games.commence_time) == date_object)
-            
-        team1_query = request.form.get('team1')
-        if team1_query:
-            query = query.filter((Games.home_team.ilike('%' + team1_query + '%')) | (Games.away_team.ilike('%' + team1_query + '%')))
-            
-        team2_query = request.form.get('team2')
-        if team2_query:
-            query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    query = db.session.query(ArbitrageOpportunity).join(Games).join(Odds).join(Bookmakers)
+
+    date_query = request.args.get('date')
+    team1_query = request.args.get('team1')
+    team2_query = request.args.get('team2')
+
+    if date_query:
+        date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
+        query = query.filter(func.DATE(Games.commence_time) == date_object)
+
+    if team1_query:
+        query = query.filter((Games.home_team.ilike('%' + team1_query + '%')) | (Games.away_team.ilike('%' + team1_query + '%')))
+
+    if team2_query:
+        query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
         
-        opps = query.all()
-    return render_template('arbitrage.html', user=current_user, arbitrages=opps)
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    arbitrages = pagination.items
+
+    return render_template('arbitrage.html', pagination=pagination, current_user=current_user, arbitrages=arbitrages)
 
 
 

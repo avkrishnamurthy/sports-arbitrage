@@ -12,19 +12,20 @@
         <input type="submit" value="Fetch new data">
     </form>
     <br>
-    <form method="post">
+
+    <form method="get" action="{{ url_for('lines.search_games') }}">
         <label for="date">Date:</label>
         <input type="date" id="date" name="date">
-
+    
         <label for="team1">Team 1:</label>
         <input type="text" id="team1" name="team1">
-
+    
         <label for="team2">Team 2:</label>
         <input type="text" id="team2" name="team2">
-
+    
         <label for="sport_title">Sport:</label>
         <input type="text" id="sport_title" name="sport_title">
-
+    
         <input type="submit" value="Search">
     </form>
 
@@ -41,6 +42,22 @@
                 </tr>
             </thead>
             <tbody>
+                {% if pagination %}
+                    <ul class='pagination'>
+                        {% for page_num in pagination.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != pagination.page %}
+                                <li><a href="{{ url_for('lines.search_games', page=page_num, date=request.args.get('date'), team1=request.args.get('team1'), team2=request.args.get('team2'), sport_title=request.args.get('sport_title')) }}">{{ page_num }}</a></li>
+                                {% else %}
+                                    <li class='active'>{{ page_num }}</li>
+                                {% endif %}
+                            {% else %}
+                                <li class='disabled'>...</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
                 {% for game in games %}
                 <tr>
                     <td>{{ game.sport_title }}</td>

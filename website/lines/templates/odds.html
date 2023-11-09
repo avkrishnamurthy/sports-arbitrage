@@ -13,19 +13,19 @@
         <input type="submit" value="Fetch new odds data">
     </form>
     <br>
-    <form method="post">
+    <form method="get" action="{{ url_for('lines.odds') }}">
         <label for="date">Date:</label>
         <input type="date" id="date" name="date">
-
+    
         <label for="team1">Team 1:</label>
         <input type="text" id="team1" name="team1">
-
+    
         <label for="team2">Team 2:</label>
         <input type="text" id="team2" name="team2">
-
+    
         <label for="bookmaker">Bookmaker:</label>
         <input type="text" id="bookmaker" name="bookmaker">
-
+    
         <input type="submit" value="Search">
     </form>
 
@@ -34,7 +34,8 @@
         <table>
             <thead>
                 <tr>
-                    <th>Game</th>
+                    <th>Home</th>
+                    <th>Away</th>
                     <th>Bookmaker</th>
                     <th>Home Odds</th>
                     <th>Away Odds</th>
@@ -43,13 +44,34 @@
                 </tr>
             </thead>
             <tbody>
+                {% if pagination %}
+                    <ul class='pagination'>
+                        {% for page_num in pagination.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != pagination.page %}
+                                <li><a href="{{ url_for('lines.odds', page=page_num, date=request.args.get('date'), team1=request.args.get('team1'), team2=request.args.get('team2'), bookmaker=request.args.get('bookmaker')) }}">{{ page_num }}</a></li>
+                                {% else %}
+                                    <li class='active'>{{ page_num }}</li>
+                                {% endif %}
+                            {% else %}
+                                <li class='disabled'>...</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
                 {% for odd in odds %}
                 <tr>
-                    <td>{{ odd.game.home_team }} vs {{ odd.game.away_team }}</td>
+                    <td>{{ odd.game.home_team }}</td>
+                    <td>{{ odd.game.away_team }}</td>
                     <td>{{ odd.bookmaker.title }}</td>
                     <td>{{ odd.home_team_odds }}</td>
                     <td>{{ odd.away_team_odds }}</td>
-                    <td>{{ odd.draw_odds }}</td>
+                    {% if odd.draw_odds%}
+                    <td>{{ odd.draw_odds }}</td>    
+                    {%else%}
+                    <td></td>
+                    {% endif %}
                     <td>{{ odd.last_update }}</td>
                 </tr>
                 {% endfor %}

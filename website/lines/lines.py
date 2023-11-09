@@ -100,8 +100,8 @@ def insert_scores():
             stmt = stmt.on_conflict_do_update(
                 index_elements=[Games.id],
                 set_=update_dict,
-                where=(Games.last_update.is_(None)
-            ))
+                where=(Games.last_update.is_(None) | ((item['last_update'] is not None) and (Games.last_update < item['last_update'])))
+            )
 
             db.session.execute(stmt)
     db.session.commit()
@@ -160,8 +160,6 @@ def search_games():
 
     if sport_title_query:
         query = query.filter(Games.sport_title.ilike('%' + sport_title_query + '%'))
-
-    
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
@@ -241,7 +239,7 @@ def insert_odds():
                         stmt = stmt.on_conflict_do_update(
                             index_elements=[Odds.game_id, Odds.bookmaker_id],
                             set_=update_dict,
-                            where=(Odds.last_update.is_(None) | (Odds.last_update < market['last_update']))
+                            where=(Odds.last_update.is_(None) | ((market['last_update'] is not None) and (Odds.last_update < market['last_update'])))
                         )
 
                         db.session.execute(stmt)

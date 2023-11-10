@@ -2,6 +2,9 @@
 {% block title %}Search Odds{% endblock %} 
 {% block content %}
 <html>
+    <link
+      rel="stylesheet"
+      href="{{url_for('lines.static', filename='arbitrage.css')}}">
 <head>
     <title>Search Arbitrage Opportunities</title>
 </head>
@@ -30,13 +33,14 @@
         <table>
             <thead>
                 <tr>
-                    <th>Arbitrage ID</th>
-                    <th>Game</th>
-                    <th>Bookmaker 1</th>
+                    <th>Home</th>
+                    <th>Bookmaker</th>
                     <th>Home Odds</th>
-                    <th>Bookmaker 2</th>
+                    <th>Away</th>
+                    <th>Bookmaker</th>
                     <th>Away Odds</th>
                     <th>Profit Margin</th>
+                    <th>Time Found</th>
                 </tr>
             </thead>
             <tbody>
@@ -58,14 +62,14 @@
                 
                 {% for arb in arbitrages %}
                 <tr>
-                    <td>{{arb[0].id}}</td>
-                    <td>{{ arb[1].home_team }} vs {{ arb[1].away_team }}</td>
+                    <td>{{ arb[1].home_team }}</td>
                     <td>{{ arb[2].bookmaker.title }}</td>
-                    <td>{{ arb[2].home_team_odds }}</td>
+                    <td>{{ arb[2].home_team_odds_display }}</td>
+                    <td>{{ arb[1].away_team }}</td>
                     <td>{{ arb[3].bookmaker.title }}</td>
-                    <td>{{ arb[3].away_team_odds }}</td>
-                    <td>{{ arb[0].profit_percentage }}</td>
-                    <td>{{ arb[0].last_update }}</td>
+                    <td>{{ arb[3].away_team_odds_display }}</td>
+                    <td>{{ arb[0].profit_percentage_display}}</td>
+                    <td>{{ arb[0].time_found_display }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

@@ -1,6 +1,10 @@
 {% extends "base.html" %} {% block title %}Search Games{% endblock %} {% block content
     %}
 <html>
+
+<link
+      rel="stylesheet"
+      href="{{url_for('lines.static', filename='games.css')}}">
 <head>
     <title>Search Games</title>
 </head>
@@ -27,21 +31,22 @@
         <input type="text" id="sport_title" name="sport_title">
 
         <input type="checkbox" id="live" name="live" value="live">
-        <label for="live">Live</label><br>
+        <label for="live">Live</label>
     
         <input type="submit" value="Search">
     </form>
+    
 
     {% if games %}
-        <h2>Results:</h2>
+    <h2>Results:</h2>
         <table>
             <thead>
                 <tr>
                     <th>Sport</th>
-                    <th>Home Team</th>
-                    <th>Away Team</th>
+                    <th>Home</th>
+                    <th>Away</th>
                     <th>Score</th>
-                    <th>Commence Time</th>
+                    <th>Start Time</th>
                     <th>Last Update</th>
                 </tr>
             </thead>
@@ -67,9 +72,13 @@
                     <td>{{ game.sport_title }}</td>
                     <td>{{ game.home_team }}</td>
                     <td>{{ game.away_team }}</td>
+                    {% if game.home_team_score %}
                     <td>{{ game.home_team_score }} - {{ game.away_team_score }}</td>
-                    <td>{{ game.commence_time }}</td>
-                    <td>{{ game.last_update }}</td>
+                    {% else %} 
+                    <td ></td>
+                    {%endif%}
+                    <td>{{ game.commence_time_display }}</td>
+                    <td>{{ game.last_update_display }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

@@ -2,6 +2,9 @@
 {% block title %}Search Odds{% endblock %} 
 {% block content %}
 <html>
+    <link
+      rel="stylesheet"
+      href="{{url_for('lines.static', filename='odds.css')}}">
 <head>
     <title>Search Odds</title>
 </head>
@@ -39,7 +42,6 @@
                     <th>Bookmaker</th>
                     <th>Home Odds</th>
                     <th>Away Odds</th>
-                    <th>Draw Odds</th>
                     <th>Last Update</th>
                 </tr>
             </thead>
@@ -65,14 +67,9 @@
                     <td>{{ odd.game.home_team }}</td>
                     <td>{{ odd.game.away_team }}</td>
                     <td>{{ odd.bookmaker.title }}</td>
-                    <td>{{ odd.home_team_odds }}</td>
-                    <td>{{ odd.away_team_odds }}</td>
-                    {% if odd.draw_odds%}
-                    <td>{{ odd.draw_odds }}</td>    
-                    {%else%}
-                    <td></td>
-                    {% endif %}
-                    <td>{{ odd.last_update }}</td>
+                    <td>{{ odd.home_team_odds_display }}</td>
+                    <td>{{ odd.away_team_odds_display }}</td>
+                    <td>{{ odd.last_update_display }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

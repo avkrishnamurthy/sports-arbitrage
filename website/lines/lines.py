@@ -13,7 +13,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm.exc import NoResultFound
 from . import arbitrage
 from sqlalchemy.orm import aliased
-
+import pytz
 
 lines_ = Blueprint('lines', __name__, template_folder='templates', static_url_path='lines/', static_folder='static')
 
@@ -164,6 +164,16 @@ def search_games():
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
+    for game in games:
+        eastern = pytz.timezone('US/Eastern')
+        game_time_eastern = game.commence_time.astimezone(eastern)
+        game.commence_time_display = game_time_eastern.strftime('%b %d, %-I:%M %p ET')
+        last_update_eastern = game.last_update
+        if last_update_eastern: 
+            last_update_eastern = last_update_eastern.astimezone(eastern)
+            last_update_eastern = last_update_eastern.strftime('%b %d, %-I:%M:%S %p ET')
+        game.last_update_display = last_update_eastern
+
     
     return render_template('games.html', pagination=pagination, games=games, current_user=current_user)
 
@@ -280,6 +290,20 @@ def odds():
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     odds = pagination.items
+    for odd in odds:
+        odd.home_team_odds_display = odd.home_team_odds
+        odd.away_team_odds_display = odd.away_team_odds
+        if odd.home_team_odds > 0:
+            odd.home_team_odds_display = '+'+str(odd.home_team_odds)
+        if odd.away_team_odds > 0:
+            odd.away_team_odds_display = '+'+str(odd.away_team_odds)
+
+        eastern = pytz.timezone('US/Eastern')
+        last_update_eastern = odd.last_update
+        if last_update_eastern: 
+            last_update_eastern = last_update_eastern.astimezone(eastern)
+            last_update_eastern = last_update_eastern.strftime('%b %d, %-I:%M:%S %p ET')
+        odd.last_update_display = last_update_eastern
 
     return render_template('odds.html', pagination=pagination, odds=odds, current_user=current_user)
 
@@ -292,7 +316,7 @@ def call_insert_arbitrage():
 def arbitrage_opportunities():
     
     page = request.args.get('page', 1, type=int)
-    per_page = 5
+    per_page = 10
     AwayOdds = aliased(Odds)
 
     query = db.session.query(
@@ -323,6 +347,20 @@ def arbitrage_opportunities():
     
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     arbitrages = pagination.items
+
+    for arbitrage in arbitrages:
+        arbitrage[0].profit_percentage_display = str(abs(round(arbitrage[0].profit_percentage, 2)) * 100)+"%"
+        arbitrage[2].home_team_odds_display = arbitrage[2].home_team_odds
+        arbitrage[3].away_team_odds_display = arbitrage[3].away_team_odds
+        if arbitrage[2].home_team_odds > 0:
+            arbitrage[2].home_team_odds_display = "+"+str(arbitrage[2].home_team_odds)
+        if arbitrage[3].away_team_odds > 0:
+            arbitrage[3].away_team_odds_display = "+"+str(arbitrage[3].away_team_odds)
+        
+        eastern = pytz.timezone('US/Eastern')
+        arbitrage_time_eastern = arbitrage[0].time_found.astimezone(eastern)
+        arbitrage[0].time_found_display = arbitrage_time_eastern.strftime('%b %d, %-I:%M %p ET')
+
     return render_template('arbitrage.html', pagination=pagination, arbitrages=arbitrages, current_user=current_user)
 
 

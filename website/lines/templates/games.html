@@ -56,7 +56,7 @@
                         {% for page_num in pagination.iter_pages() %}
                             {% if page_num %}
                                 {% if page_num != pagination.page %}
-                                <li><a href="{{ url_for('lines.search_games', page=page_num, date=request.args.get('date'), team1=request.args.get('team1'), team2=request.args.get('team2'), sport_title=request.args.get('sport_title')) }}">{{ page_num }}</a></li>
+                                <li><a href="{{ url_for('lines.search_games', page=page_num, date=request.args.get('date'), team1=request.args.get('team1'), team2=request.args.get('team2'), sport_title=request.args.get('sport_title'), live=request.args.get('live')) }}">{{ page_num }}</a></li>
                                 {% else %}
                                     <li class='active'>{{ page_num }}</li>
                                 {% endif %}

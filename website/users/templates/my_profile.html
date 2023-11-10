@@ -8,42 +8,41 @@
 </head>
 <body>
     {% if current_user %}
+    <div class="user-details"> 
     <h1>My Profile</h1>
         <p>First Name: {{current_user.first_name}}</p>
         <p>Email: {{current_user.email}}</p>
-        <p>username: {{current_user.username}}</p>
-        <img src={{favorite_bookmaker.image}}>
-        <p>Favorite Team: {{current_user.favorite_team}} 
+        <p>username: {{current_user.username}}</p>        
             <form method="post" action="{{ url_for('users.favorite_team', username=current_user.username) }}">
-                <label for="team">Update</label>
                 <input type="text" id="team" name="team">
-                <input type="submit" value="Search">
+                <input type="submit" value="Update Team">
             </form>
+            <img src={{favorite_bookmaker.image}}>    
         <div class="dropdown">
-            <button id="dropbtn" class="dropbtn">Update Favorite Bookmaker</button>
+            <button id="dropbtn" class="dropbtn">Update Bookmaker</button>
             <div id="bookmakerDropdown" class="dropdown-content">
                 {% for bookmaker in bookmakers %}
                 <button id="bookmaker-button" onclick="setFavorite('{{ current_user.username}}', '{{bookmaker.id }}')" class="set-favorite-bookmaker-{{bookmaker.id}}">{{bookmaker.title}}</button>
                 {% endfor %}
             </div>
         </div>
+    </div>
+    <br>
         {% if games %}
-        <h2>Upcoming {{current_user.favorite_team}} Games:</h2>
+        <h2 align="center">Upcoming {{current_user.favorite_team}} Games:</h2>
         <table>
             <thead>
                 <tr>
-                    <th>Sport</th>
-                    <th>Home Team</th>
-                    <th>Away Team</th>
-                    <th>Commence Time</th>
-                    <th>Home Team Odds</th>
-                    <th>Away Team Odds</th>
+                    <th>Home</th>
+                    <th>Away</th>
+                    <th>Start Time</th>
+                    <th>Home Odds</th>
+                    <th>Away Odds</th>
                 </tr>
             </thead>
             <tbody>
                 {% for game in games %}
                 <tr>
-                    <td>{{ game.sport_title }}</td>
                     <td>{{ game.home_team }}</td>
                     <td>{{ game.away_team }}</td>
                     <td>{{ game.commence_time }}</td>

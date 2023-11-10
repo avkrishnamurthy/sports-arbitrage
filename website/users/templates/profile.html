@@ -1,18 +1,24 @@
 {% extends "base.html" %} {% block title %}Profile{% endblock %} {% block content
     %}
 <html>
+
+<link
+      rel="stylesheet"
+      href="{{url_for('users.static', filename='profile.css')}}">
 <head>
     <title>Profile</title>
 </head>
 <body>
 
     {% if user %}
+    <div class='user-details'>
     <h1>{{user.username}}'s Profile</h1>
         <p>First Name: {{user.first_name}}</p>
         <p>Email: {{user.email}}</p>
         <img src={{favorite_bookmaker.image}}>
-        <p>Favorite Team: {{user.favorite_team}} 
-        
+        <br>
+        <p id='favorite-team'>Favorite Team: {{user.favorite_team}} 
+        </div>
     {% else %}
         <p>No user found.</p>
     {% endif %}

@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
+import pytz
 from website import db
 import requests
 import json
@@ -35,8 +36,8 @@ def profile(username):
         return redirect(url_for("home.home", _external=True))
 
     if current_user.username == username: 
+        games_odds_modified = []
         bookmakers = Bookmakers.query.all()
-        games = None
         if current_user.favorite_team:
             now = datetime.now()
             games_odds = db.session.query(Games) \
@@ -58,7 +59,34 @@ def profile(username):
                 .filter((Games.commence_time > now)) \
                 .filter((Odds.bookmaker_id == current_user.favorite_bookmaker_id) | (Odds.bookmaker_id.is_(None))) \
                 .all()
-        return render_template('my_profile.html', current_user = current_user, favorite_bookmaker=favorite_bookmaker, bookmakers=bookmakers, games=games_odds)
+            
+
+            for game_odd in games_odds:
+                eastern = pytz.timezone('US/Eastern')
+                commence_time_eastern = game_odd.commence_time
+                if commence_time_eastern:
+                    commence_time_eastern = commence_time_eastern.astimezone(eastern)
+                    commence_time_eastern = commence_time_eastern.strftime('%b %d, %-I:%M %p ET')
+
+                game_odd_dict = {
+                    'id': game_odd.id,
+                    'sport_key': game_odd.sport_key,
+                    'sport_title': game_odd.sport_title,
+                    'commence_time': commence_time_eastern,
+                    'completed': game_odd.completed,
+                    'home_team': game_odd.home_team,
+                    'away_team': game_odd.away_team,
+                    'home_team_score': game_odd.home_team_score,
+                    'away_team_score': game_odd.away_team_score,
+                    'last_update': game_odd.last_update,
+                    'home_team_odds': f"+{game_odd.home_team_odds}" if game_odd.home_team_odds > 0 else game_odd.home_team_odds,
+                    'away_team_odds': f"+{game_odd.away_team_odds}" if game_odd.away_team_odds > 0 else game_odd.away_team_odds
+                }
+
+                games_odds_modified.append(game_odd_dict)
+
+
+        return render_template('my_profile.html', current_user = current_user, favorite_bookmaker=favorite_bookmaker, bookmakers=bookmakers, games=games_odds_modified)
     return render_template('profile.html', current_user = current_user, user=user, favorite_bookmaker=favorite_bookmaker)
 
 

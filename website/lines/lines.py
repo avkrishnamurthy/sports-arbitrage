@@ -275,6 +275,18 @@ def odds():
     team2_query = request.args.get('team2')
     bookmaker_query = request.args.get('bookmaker')
 
+    live_query = request.args.get('live')
+
+    if live_query:
+        now = datetime.now()
+
+        one_day_earlier = now - timedelta(days=1)
+        query = query.filter(
+            (Games.commence_time >= one_day_earlier) & 
+            (Games.commence_time < now) & 
+            (Games.completed == False)
+        )
+
     if date_query:
         date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
         query = query.filter(func.DATE(Games.commence_time) == date_object)
@@ -288,6 +300,7 @@ def odds():
     if bookmaker_query:
         query = query.filter(Bookmakers.title.ilike(f'%{bookmaker_query}%'))
 
+    query = query.order_by(Odds.last_update.desc())
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     odds = pagination.items
     for odd in odds:
@@ -345,6 +358,8 @@ def arbitrage_opportunities():
     if team2_query:
         query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
     
+
+    query = query.order_by(ArbitrageOpportunity.time_found.desc())
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     arbitrages = pagination.items
 

@@ -28,6 +28,9 @@
     
         <label for="bookmaker">Bookmaker:</label>
         <input type="text" id="bookmaker" name="bookmaker">
+
+        <input type="checkbox" id="live" name="live" value="live">
+        <label for="live">Live</label>
     
         <input type="submit" value="Search">
     </form>
@@ -51,7 +54,7 @@
                         {% for page_num in pagination.iter_pages() %}
                             {% if page_num %}
                                 {% if page_num != pagination.page %}
-                                <li><a href="{{ url_for('lines.odds', page=page_num, date=request.args.get('date'), team1=request.args.get('team1'), team2=request.args.get('team2'), bookmaker=request.args.get('bookmaker')) }}">{{ page_num }}</a></li>
+                                <li><a href="{{ url_for('lines.odds', page=page_num, date=request.args.get('date'), team1=request.args.get('team1'), team2=request.args.get('team2'), bookmaker=request.args.get('bookmaker'), live=request.args.get('live')) }}">{{ page_num }}</a></li>
                                 {% else %}
                                     <li class='active'>{{ page_num }}</li>
                                 {% endif %}

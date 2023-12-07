@@ -15,6 +15,15 @@
     <h1>{{user.username}}'s Profile</h1>
         <p>First Name: {{user.first_name}}</p>
         <p>Email: {{user.email}}</p>
+        {% if current_user.is_authenticated %}
+        {% if current_user.id != user.id %}
+        {% if current_user in user.follower %}
+        <button type="button" class="unfollow-button" onclick="toggleFollow('{{ user.username }}')">Unfollow</button>
+                {% else %}
+                <button type="button" class="follow-button" onclick="toggleFollow('{{ user.username }}')">Follow</button>
+                {% endif %}
+        {% endif %}
+        {% endif %}
         <img src={{favorite_bookmaker.image}}>
         <br>
         <p id='favorite-team'>Favorite Team: {{user.favorite_team}} 
@@ -23,5 +32,6 @@
         <p>No user found.</p>
     {% endif %}
 </body>
+<script src="{{url_for('users.static', filename='profile.js')}}"></script>
 </html>
 {% endblock %}

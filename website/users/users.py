@@ -99,6 +99,26 @@ def profile(username):
     return render_template('profile.html', current_user = current_user, user=user, favorite_bookmaker=favorite_bookmaker)
 
 
+@users_.route('/follow/<username>', methods=['POST'])
+@login_required
+def follow(username):
+    follow_json = json.loads(request.data)
+    follow_username = follow_json['username']
+    user = Person.query.filter_by(username=follow_username).first()
+    if not user:
+        flash("User does not exist", category="error")
+        return redirect(url_for("users.profile", username=current_user.username))
+
+    if current_user in user.follower:
+        print("here2")
+        user.follower.remove(current_user)
+    else:
+        print("here1")
+        user.follower.append(current_user)
+    
+    db.session.commit()
+    return redirect(url_for("users.profile", username=username))
+
 @users_.route('users/<username>/team', methods=['POST'])
 @login_required
 def favorite_team(username):

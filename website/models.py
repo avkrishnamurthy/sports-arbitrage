@@ -4,6 +4,12 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import func
 from sqlalchemy import UniqueConstraint
 
+followers = db.Table(
+    'followers',
+    db.Column('follower_id', db.Integer, db.ForeignKey('person.id')),
+    db.Column('following_id', db.Integer, db.ForeignKey('person.id'))
+)
+
 class Person(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True)
@@ -12,6 +18,14 @@ class Person(db.Model, UserMixin):
     first_name = db.Column(db.String(150))
     favorite_team = db.Column(db.String(150), nullable=True)
     favorite_bookmaker_id = db.Column(db.ForeignKey('bookmakers.id'), nullable=True)
+    follower = db.relationship(
+        'Person', 
+        secondary=followers,
+        primaryjoin=(followers.c.follower_id == id),
+        secondaryjoin=(followers.c.following_id == id),
+        backref=db.backref('following', lazy='dynamic'),
+        lazy='dynamic'
+    )
 
 class Games(db.Model):
     id = db.Column(db.String(32), primary_key=True, nullable=False)
@@ -59,5 +73,4 @@ class ArbitrageOpportunity(db.Model):
 
     profit_percentage = db.Column(db.Float, nullable=False)
     time_found = db.Column(db.DateTime(timezone=True), default=func.now())
-
 

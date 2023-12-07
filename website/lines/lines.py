@@ -65,6 +65,7 @@ def extract_scores(item):
 
 @shared_task(ignore_result=False)
 def insert_scores():
+    print("Fetching new game data")
     data_list = get_games_api_data()
     if not data_list:
         return
@@ -107,6 +108,8 @@ def insert_scores():
 
             db.session.execute(stmt)
     db.session.commit()
+    print("Finished adding game data")
+    insert_odds()
 
 @lines_.route('/lines')
 @login_required
@@ -197,6 +200,7 @@ def get_odds_api_data():
     return data_list
 
 def insert_odds():
+    print("Fetching new odds data")
     data_list = get_odds_api_data() 
     if not data_list:
         return
@@ -257,6 +261,7 @@ def insert_odds():
                         db.session.execute(stmt)
 
     db.session.commit()
+    print("Finished adding new odds data")
 
 @lines_.route('/insert_odds', methods=['POST'])
 def call_insert_odds():

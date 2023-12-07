@@ -7,7 +7,7 @@ from sqlalchemy import text
 from dotenv import load_dotenv
 from flask_session import Session
 from website.utils.utils import celery_init_app
-from website import tasks
+from celery.schedules import crontab
 db = SQLAlchemy()
 sess = Session()
 DB_NAME = "arbitrage_db"
@@ -43,9 +43,9 @@ def create_app():
             result_backend='redis://localhost:6379/0',
             task_ignore_result=True,
             beat_schedule={
-                "fetch-games": {
+                "fetch-games-odds": {
                     "task": "website.lines.lines.insert_scores",
-                    "schedule": 60,
+                    "schedule": crontab(minute="*/5"),
                 }
             },
         ),

@@ -6,6 +6,8 @@ from flask_login import LoginManager
 from sqlalchemy import text
 from dotenv import load_dotenv
 from flask_session import Session
+from website.utils.utils import celery_init_app
+from website import tasks
 db = SQLAlchemy()
 sess = Session()
 DB_NAME = "arbitrage_db"
@@ -34,11 +36,29 @@ def create_app():
     app.register_blueprint(lines_, url_prefix='/')
     app.register_blueprint(users_, url_prefix='/')
 
+    from .lines import lines
+    app.config.from_mapping(
+        CELERY=dict(
+            broker_url='redis://localhost:6379/0',
+            result_backend='redis://localhost:6379/0',
+            task_ignore_result=True,
+            beat_schedule={
+                "fetch-games": {
+                    "task": "website.lines.lines.insert_scores",
+                    "schedule": 60,
+                }
+            },
+        ),
+    )
+
+    celery_init_app(app)
     from .models import Person
     
     with app.app_context():
         db.create_all()
 
+
+    
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
     login_manager.init_app(app)

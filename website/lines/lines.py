@@ -13,6 +13,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm.exc import NoResultFound
 from . import arbitrage
 from sqlalchemy.orm import aliased
+from celery import shared_task
 import pytz
 
 lines_ = Blueprint('lines', __name__, template_folder='templates', static_url_path='lines/', static_folder='static')
@@ -62,7 +63,7 @@ def extract_scores(item):
                 away_score = int(score['score'])
     return home_score, away_score
 
-
+@shared_task(ignore_result=False)
 def insert_scores():
     data_list = get_games_api_data()
     if not data_list:

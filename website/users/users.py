@@ -36,9 +36,11 @@ def profile(username):
         return redirect(url_for("home.home", _external=True))
 
     if current_user.username == username: 
+        print(current_user.favorite_team)
         games_odds_modified = []
         bookmakers = Bookmakers.query.all()
         if current_user.favorite_team:
+            
             now = datetime.now()
             games_odds = db.session.query(Games) \
                 .outerjoin(Odds, Games.id == Odds.game_id) \
@@ -67,7 +69,14 @@ def profile(username):
                 if commence_time_eastern:
                     commence_time_eastern = commence_time_eastern.astimezone(eastern)
                     commence_time_eastern = commence_time_eastern.strftime('%b %d, %-I:%M %p ET')
-
+                home_team_odds = ""
+                if game_odd.home_team_odds:
+                    home_team_odds = game_odd.home_team_odds
+                    if game_odd.home_team_odds > 0: home_team_odds = f"+{game_odd.home_team_odds}"
+                away_team_odds = ""
+                if game_odd.away_team_odds:
+                    away_team_odds = game_odd.away_team_odds
+                    if game_odd.away_team_odds > 0: away_team_odds = f"+{game_odd.away_team_odds}"
                 game_odd_dict = {
                     'id': game_odd.id,
                     'sport_key': game_odd.sport_key,
@@ -79,8 +88,8 @@ def profile(username):
                     'home_team_score': game_odd.home_team_score,
                     'away_team_score': game_odd.away_team_score,
                     'last_update': game_odd.last_update,
-                    'home_team_odds': f"+{game_odd.home_team_odds}" if game_odd.home_team_odds > 0 else game_odd.home_team_odds,
-                    'away_team_odds': f"+{game_odd.away_team_odds}" if game_odd.away_team_odds > 0 else game_odd.away_team_odds
+                    'home_team_odds': home_team_odds,
+                    'away_team_odds': away_team_odds
                 }
 
                 games_odds_modified.append(game_odd_dict)

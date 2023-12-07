@@ -7,3 +7,4 @@ website/__pycache__
 README.txt
 tmp.py
 venv
+celerybeat-schedule.db

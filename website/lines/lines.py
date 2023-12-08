@@ -14,6 +14,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from . import arbitrage
 from sqlalchemy.orm import aliased
 from celery import shared_task
+from collections import defaultdict
 import pytz
 
 lines_ = Blueprint('lines', __name__, template_folder='templates', static_url_path='lines/', static_folder='static')
@@ -201,7 +202,8 @@ def get_odds_api_data():
 
 def insert_odds():
     print("Fetching new odds data")
-    data_list = get_odds_api_data() 
+    data_list = get_odds_api_data()
+    game_book_map = defaultdict(list)
     if not data_list:
         return
     for data in data_list:
@@ -258,10 +260,13 @@ def insert_odds():
                             where=(Odds.last_update.is_(None) | ((market['last_update'] is not None) and (Odds.last_update < market['last_update'])))
                         )
 
+                        game_book_map[game_id].append(bookmaker_obj.id)
                         db.session.execute(stmt)
 
     db.session.commit()
     print("Finished adding new odds data")
+    arbitrage.insert_arbitrage(game_book_map)
+
 
 @lines_.route('/insert_odds', methods=['POST'])
 def call_insert_odds():

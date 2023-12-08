@@ -11,11 +11,6 @@
 <body>
     
     <h1>Search Odds</h1>
-
-    <form method="post" action="{{ url_for('lines.call_insert_odds') }}">
-        <input type="submit" value="Fetch new odds data">
-    </form>
-    <br>
     <form method="get" action="{{ url_for('lines.odds') }}">
         <label for="date">Date:</label>
         <input type="date" id="date" name="date">

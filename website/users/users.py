@@ -19,6 +19,7 @@ users_ = Blueprint('users', __name__, template_folder='templates', static_url_pa
 load_dotenv()
 
 @users_.route('/check-user-exists', methods=['POST'])
+@login_required
 def check_user_exists():
     username = request.json.get('username')
     user = Person.query.filter_by(username=username).first()
@@ -36,7 +37,6 @@ def profile(username):
         return redirect(url_for("home.home", _external=True))
 
     if current_user.username == username: 
-        print(current_user.favorite_team)
         games_odds_modified = []
         bookmakers = Bookmakers.query.all()
         if current_user.favorite_team:
@@ -110,10 +110,8 @@ def follow(username):
         return redirect(url_for("users.profile", username=current_user.username))
 
     if current_user in user.follower:
-        print("here2")
         user.follower.remove(current_user)
     else:
-        print("here1")
         user.follower.append(current_user)
     
     db.session.commit()

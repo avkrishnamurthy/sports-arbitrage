@@ -76,6 +76,11 @@ tr:nth-child(odd) {
     margin-bottom: 10px;
 }
 
+label {
+    margin-bottom: 5px; /* Adds space between label and input */
+    color: rgb(165, 155, 155);
+}
+
 input {
     border: 2px solid black;
 }

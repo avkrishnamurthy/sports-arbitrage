@@ -62,15 +62,13 @@ class Bookmakers(db.Model):
 
 class ArbitrageOpportunity(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False)
-
     game_id = db.Column(db.String, db.ForeignKey('games.id'), nullable=False)
     game = db.relationship('Games', backref='arbitrage_opportunities')
-
-    home_team_odds_id = db.Column(db.Integer, db.ForeignKey('odds.id'), nullable=False)
-    away_team_odds_id = db.Column(db.Integer, db.ForeignKey('odds.id'), nullable=False)
-    home_odds = db.relationship('Odds', foreign_keys=[home_team_odds_id], backref='arbitrage_home_opportunities')
-    away_odds = db.relationship('Odds', foreign_keys=[away_team_odds_id], backref='arbitrage_away_opportunities')
-
+    home_odds_bookmaker_id = db.Column(db.Integer, db.ForeignKey('bookmakers.id'), nullable=False)
+    away_odds_bookmaker_id = db.Column(db.Integer, db.ForeignKey('bookmakers.id'), nullable=False)
+    home_odds = db.Column(db.Integer, nullable=False)
+    away_odds = db.Column(db.Integer, nullable=False)
     profit_percentage = db.Column(db.Float, nullable=False)
     time_found = db.Column(db.DateTime(timezone=True), default=func.now())
+
 

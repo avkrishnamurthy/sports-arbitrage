@@ -313,19 +313,19 @@ def arbitrage_opportunities():
     
     page = request.args.get('page', 1, type=int)
     per_page = 10
-    AwayOdds = aliased(Odds)
+    AwayBookmakers = aliased(Bookmakers)
 
     query = db.session.query(
         ArbitrageOpportunity,
         Games,
-        Odds,
-        AwayOdds
+        Bookmakers,
+        AwayBookmakers
     ).join(
         Games, ArbitrageOpportunity.game_id == Games.id
     ).join(
-        Odds, ArbitrageOpportunity.home_team_odds_id == Odds.id
+        Bookmakers, ArbitrageOpportunity.home_odds_bookmaker_id == Bookmakers.id
     ).join(
-        AwayOdds, ArbitrageOpportunity.away_team_odds_id == AwayOdds.id
+        AwayBookmakers, ArbitrageOpportunity.away_odds_bookmaker_id == AwayBookmakers.id
     )
 
     date_query = request.args.get('date')
@@ -348,12 +348,12 @@ def arbitrage_opportunities():
 
     for arbitrage in arbitrages:
         arbitrage[0].profit_percentage_display = str(round(abs(arbitrage[0].profit_percentage) * 100, 2))+"%"
-        arbitrage[2].home_team_odds_display = arbitrage[2].home_team_odds
-        arbitrage[3].away_team_odds_display = arbitrage[3].away_team_odds
-        if arbitrage[2].home_team_odds > 0:
-            arbitrage[2].home_team_odds_display = "+"+str(arbitrage[2].home_team_odds)
-        if arbitrage[3].away_team_odds > 0:
-            arbitrage[3].away_team_odds_display = "+"+str(arbitrage[3].away_team_odds)
+        arbitrage[0].home_team_odds_display = arbitrage[0].home_odds
+        arbitrage[0].away_team_odds_display = arbitrage[0].away_odds
+        if arbitrage[0].home_odds > 0:
+            arbitrage[0].home_team_odds_display = "+"+str(arbitrage[0].home_odds)
+        if arbitrage[0].away_odds > 0:
+            arbitrage[0].away_team_odds_display = "+"+str(arbitrage[0].away_odds)
         
         eastern = pytz.timezone('US/Eastern')
         arbitrage_time_eastern = arbitrage[0].time_found.astimezone(eastern)

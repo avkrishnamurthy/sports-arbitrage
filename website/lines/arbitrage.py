@@ -43,18 +43,20 @@ def find_arbitrage(game_book_map):
                 #Check if this arbitrage has already been added; Fixes problem with same arbitrage opportunity being readded
                 #In combination with not rescanning entire Odds table, this will speed up arbitrage finding and eliminate duplicate arbitrage opportunities
                 try:
-                    already_found_arbitrage = (db.session.query(ArbitrageOpportunity).filter_by(game_id=game_id, home_team_odds_id=odds1.id, away_team_odds_id=odds2.id, profit_percentage=arbitrage_value-1).one())
+                    already_found_arbitrage = (db.session.query(ArbitrageOpportunity).filter_by(game_id=odds1.game_id, home_odds_bookmaker_id=odds1.bookmaker_id, home_odds=odds1.home_team_odds, away_odds_bookmaker_id=odds2.bookmaker_id, away_odds=odds2.away_team_odds, profit_percentage=arbitrage_value-1).one())
+                    print(already_found_arbitrage)
                 except NoResultFound:
-                    arbitrage_opp = ArbitrageOpportunity(game_id=odds1.game_id, home_team_odds_id=odds1.id, away_team_odds_id=odds2.id, profit_percentage=arbitrage_value-1)
+                    arbitrage_opp = ArbitrageOpportunity(game_id=odds1.game_id, home_odds_bookmaker_id=odds1.bookmaker_id, home_odds=odds1.home_team_odds, away_odds_bookmaker_id=odds2.bookmaker_id, away_odds=odds2.away_team_odds, profit_percentage=arbitrage_value-1)
                     arbitrage_opps.append(arbitrage_opp)
 
             #book 1 away, book 2 home
             arbitrage_value = calculate_arbitrage(odds2.home_team_odds, odds1.away_team_odds)
             if arbitrage_value < 1:
                 try:
-                    already_found_arbitrage = (db.session.query(ArbitrageOpportunity).filter_by(game_id=game_id, home_team_odds_id=odds2.id, away_team_odds_id=odds1.id, profit_percentage=1-arbitrage_value).one())
+                    already_found_arbitrage = (db.session.query(ArbitrageOpportunity).filter_by(game_id=odds1.game_id, home_odds_bookmaker_id=odds2.bookmaker_id, home_odds=odds2.home_team_odds, away_odds_bookmaker_id=odds1.bookmaker_id, away_odds=odds1.away_team_odds, profit_percentage=1-arbitrage_value).one())
+                    print(already_found_arbitrage)
                 except NoResultFound:
-                    arbitrage_opp = ArbitrageOpportunity(game_id=odds1.game_id, home_team_odds_id=odds2.id, away_team_odds_id=odds1.id, profit_percentage=1-arbitrage_value)
+                    arbitrage_opp = ArbitrageOpportunity(game_id=odds1.game_id, home_odds_bookmaker_id=odds2.bookmaker_id, home_odds=odds2.home_team_odds, away_odds_bookmaker_id=odds1.bookmaker_id, away_odds=odds1.away_team_odds, profit_percentage=1-arbitrage_value)
                     arbitrage_opps.append(arbitrage_opp)
                 
     print("Finished finding arbitrage opportunities")

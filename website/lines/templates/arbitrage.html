@@ -66,11 +66,11 @@
                 {% for arb in arbitrages %}
                 <tr>
                     <td>{{ arb[1].home_team }}</td>
-                    <td>{{ arb[2].bookmaker.title }}</td>
-                    <td>{{ arb[2].home_team_odds_display }}</td>
+                    <td>{{ arb[2].title }}</td>
+                    <td>{{ arb[0].home_team_odds_display }}</td>
                     <td>{{ arb[1].away_team }}</td>
-                    <td>{{ arb[3].bookmaker.title }}</td>
-                    <td>{{ arb[3].away_team_odds_display }}</td>
+                    <td>{{ arb[3].title }}</td>
+                    <td>{{ arb[0].away_team_odds_display }}</td>
                     <td>{{ arb[0].profit_percentage_display}}</td>
                     <td>{{ arb[0].time_found_display }}</td>
                 </tr>

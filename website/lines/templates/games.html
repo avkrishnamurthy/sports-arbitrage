@@ -9,39 +9,44 @@
     <title>Search Games</title>
 </head>
 <body>
-    
-    <h1>Search Games</h1>
-
-    <form method="post" action="{{ url_for('lines.call_insert_scores') }}">
-        <input type="submit" value="Fetch new data">
-    </form>
     <br>
-
-    <form method="get" action="{{ url_for('lines.search_games') }}">
-        <label for="date">Date:</label>
-        <input type="date" id="date" name="date">
+    <form class="search-bar" method="get" action="{{ url_for('lines.search_games') }}">
+        <div class="form-group">
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date">
+        </div>
     
-        <label for="team1">Team 1:</label>
-        <input type="text" id="team1" name="team1">
+        <div class="form-group">
+            <label for="team1">Team 1:</label>
+            <input type="text" id="team1" name="team1">
+        </div>
     
-        <label for="team2">Team 2:</label>
-        <input type="text" id="team2" name="team2">
+        <div class="form-group">
+            <label for="team2">Team 2:</label>
+            <input type="text" id="team2" name="team2">
+        </div>
     
-        <label for="sport_title">Sport:</label>
-        <input type="text" id="sport_title" name="sport_title">
-
-        <input type="checkbox" id="live" name="live" value="live">
-        <label for="live">Live</label>
+        <div class="form-group">
+            <label for="sport_title">Sport:</label>
+            <input type="text" id="sport_title" name="sport_title">
+        </div>
     
-        <input type="submit" value="Search">
+        <div class="form-group">
+            <label for="live">Live</label>
+            <input type="checkbox" id="live" name="live" value="live">
+        </div>
+    
+        <div class="form-group">
+            <br>
+            <input id="submit" type="submit" value="Search">
+        </div>
     </form>
     
-
     {% if games %}
-    <h2>Results:</h2>
+    <h2 id="results">Games</h2>
         <table>
             <thead>
-                <tr>
+                <tr class="table-head">
                     <th>Sport</th>
                     <th>Home</th>
                     <th>Away</th>
@@ -51,24 +56,28 @@
                 </tr>
             </thead>
             <tbody>
-                {% if pagination %}
-                    <ul class='pagination'>
-                        {% for page_num in pagination.iter_pages() %}
-                            {% if page_num %}
-                                {% if page_num != pagination.page %}
-                                <li><a href="{{ url_for('lines.search_games', page=page_num, date=request.args.get('date'), team1=request.args.get('team1'), team2=request.args.get('team2'), sport_title=request.args.get('sport_title'), live=request.args.get('live')) }}">{{ page_num }}</a></li>
+                <div class="pagination-row">
+                    {% if pagination %}
+                        <ul class='pagination'>
+                            {% for page_num in pagination.iter_pages() %}
+                                {% if page_num %}
+                                    {% if page_num != pagination.page %}
+                                    <li><a href="{{ url_for('lines.search_games', page=page_num, date=request.args.get('date'), team1=request.args.get('team1'), team2=request.args.get('team2'), sport_title=request.args.get('sport_title'), live=request.args.get('live')) }}">{{ page_num }}</a></li>
+                                    {% else %}
+                                        <li class='active'>{{ page_num }}</li>
+                                    {% endif %}
                                 {% else %}
-                                    <li class='active'>{{ page_num }}</li>
+                                    <li class='disabled'>...</li>
                                 {% endif %}
-                            {% else %}
-                                <li class='disabled'>...</li>
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    <form method="post" action="{{ url_for('lines.call_insert_scores') }}">
+                        <input type="submit" value="Fetch new data">
+                    </form>
+                </div>
                 {% for game in games %}
-                <tr>
+                <tr class="games-row">
                     <td>{{ game.sport_title }}</td>
                     <td>{{ game.home_team }}</td>
                     <td>{{ game.away_team }}</td>

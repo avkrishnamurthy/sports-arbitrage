@@ -1,28 +1,32 @@
 body {
     font-family: 'Arial', sans-serif;
-    background-color: rgb(221, 221, 221);
+    background-color: rgb(255, 253, 253);
     margin: 0;
-    padding: 20px;
-}
-h1 {
-    color: #333;
 }
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
+    margin-top: 10px;
 }
+
 th, td {
     padding: 15px;
     text-align: center;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid rgb(152, 152, 152);
 }
 tr:nth-child(even) {
-    background-color: #f9f9f9;
+    background-color: #f9f6f6;
 }
 tr:nth-child(odd) {
-    background-color: #fff;
+    background-color: #f3f0f0;
 }
+
+.table-head {
+    background-color: rgb(255, 255, 255) !important;
+    border: 1px solid black;
+    /* color: white; */
+}
+
 .card-row {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     margin-bottom: 10px;
@@ -55,4 +59,59 @@ tr:nth-child(odd) {
 }
 .pagination .disabled {
     color: #999;
+}
+
+.search-bar {
+    display: flex;
+    flex-wrap: wrap; /* Allows form groups to wrap to next line on smaller screens */
+    justify-content: space-around; /* Adjusts spacing between form groups */
+    align-items: flex-start; /* Aligns items to the start of the cross axis */
+    padding: 0px 5px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column; /* Stacks label and input vertically */
+    margin: 5px;
+    margin-bottom: 10px;
+}
+
+label {
+    margin-bottom: 5px; /* Adds space between label and input */
+    color: rgb(165, 155, 155);
+}
+
+input {
+    border: 2px solid black;
+}
+
+#submit {
+    background-color: rgb(52, 77, 234);
+    border-radius: 10px;
+    color: white;
+    margin-bottom: 0px;
+}
+
+.pagination-row {
+    display: flex;
+    align-items: center; /* Aligns items vertically in the center */
+    justify-content: space-between; /* Spreads items across the main axis */
+}
+
+#results {
+    font-size: 40px;
+    position: relative;
+    margin-bottom: 30px;
+}
+
+#results::before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    width: 12%;
+    left: 0;
+    height: 5px;
+    border-radius: 2px;
+    background: linear-gradient(111.3deg, #9c27b0 9.6%, #00bcd4 93.6%);
 }

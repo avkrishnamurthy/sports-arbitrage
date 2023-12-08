@@ -8,9 +8,14 @@
   align-items: center;
 } */
 
+
+body {
+  background-color: black;
+  background-image: linear-gradient(black, rgb(17, 18, 44), rgb(34, 44, 155));
+}
 h1 {
   color: #333;
-  font-size: 2em; /* Adjusted font size */
+  /* font-size: 2em;  */
 }
 
 /* Adjustments for the user details to align them nicely */

@@ -347,7 +347,7 @@ def arbitrage_opportunities():
     arbitrages = pagination.items
 
     for arbitrage in arbitrages:
-        arbitrage[0].profit_percentage_display = str(abs(round(arbitrage[0].profit_percentage, 2)) * 100)+"%"
+        arbitrage[0].profit_percentage_display = str(round(abs(arbitrage[0].profit_percentage) * 100, 2))+"%"
         arbitrage[2].home_team_odds_display = arbitrage[2].home_team_odds
         arbitrage[3].away_team_odds_display = arbitrage[3].away_team_odds
         if arbitrage[2].home_team_odds > 0:

@@ -9,32 +9,43 @@
     <title>Search Odds</title>
 </head>
 <body>
+    <br>
+    <form class="search-bar" method="get" action="{{ url_for('lines.odds') }}">
+        <div class="form-group">
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date">
+        </div>
     
-    <h1>Search Odds</h1>
-    <form method="get" action="{{ url_for('lines.odds') }}">
-        <label for="date">Date:</label>
-        <input type="date" id="date" name="date">
+        <div class="form-group">
+            <label for="team1">Team 1:</label>
+            <input type="text" id="team1" name="team1">
+        </div>
     
-        <label for="team1">Team 1:</label>
-        <input type="text" id="team1" name="team1">
+        <div class="form-group">
+            <label for="team2">Team 2:</label>
+            <input type="text" id="team2" name="team2">
+        </div>
     
-        <label for="team2">Team 2:</label>
-        <input type="text" id="team2" name="team2">
+        <div class="form-group">
+            <label for="bookmaker">Bookmaker:</label>
+            <input type="text" id="bookmaker" name="bookmaker">
+        </div>
     
-        <label for="bookmaker">Bookmaker:</label>
-        <input type="text" id="bookmaker" name="bookmaker">
-
-        <input type="checkbox" id="live" name="live" value="live">
-        <label for="live">Live</label>
+        <div class="form-group">
+            <label for="live">Live</label>
+            <input type="checkbox" id="live" name="live" value="live">
+        </div>
     
-        <input type="submit" value="Search">
+        <div class="form-group">
+            <br>
+            <input id="submit" type="submit" value="Search">
+        </div>
     </form>
-
     {% if odds %}
-        <h2>Results:</h2>
+        <h2 id="results">Odds</h2>
         <table>
             <thead>
-                <tr>
+                <tr class="table-head">
                     <th>Home</th>
                     <th>Away</th>
                     <th>Bookmaker</th>

@@ -12,10 +12,6 @@
     
     <h1>Search Arbitrage Opportunities</h1>
 
-    <form method="post" action="{{ url_for('lines.call_insert_arbitrage') }}">
-        <input type="submit" value="Fetch new arbitrages">
-    </form>
-    <br>
     <form method="get" action="{{ url_for('lines.arbitrage_opportunities') }}">
         <label for="date">Date:</label>
         <input type="date" id="date" name="date">

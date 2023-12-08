@@ -3,13 +3,11 @@ from flask import Blueprint, render_template, request, flash, jsonify, redirect,
 from flask_login import login_required, current_user
 from website import db
 import requests
-import json
 import os
 from dotenv import load_dotenv
 from website.models import Games, Bookmakers, Odds, ArbitrageOpportunity
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import func
-from sqlalchemy import or_
 from sqlalchemy.orm.exc import NoResultFound
 from . import arbitrage
 from sqlalchemy.orm import aliased
@@ -23,10 +21,8 @@ load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
 MARKETS = "h2h"
-TOGGLE_LIVE = True
 REGIONS = "us"
 ODDS_FORMAT = "american"
-BOOKMAKERS = "fanduel,draftkings,betmgm,foxbet,barstool,pointsbetus,circasports,wynnbet,unibet_us,betus,twinspires,betonlineag"
 SPORTS = [
     "basketball_nba",
     "americanfootball_nfl",
@@ -34,8 +30,6 @@ SPORTS = [
     "baseball_mlb",
 ]
 DAYS_FROM = "3"
-
-
 
 # API CALL
 def get_games_api_data():
@@ -112,20 +106,6 @@ def insert_scores():
     print("Finished adding game data")
     insert_odds()
 
-@lines_.route('/lines')
-@login_required
-def lines():
-    return render_template("lines.html", user=current_user)
-
-
-@lines_.route('/lines/sports')
-@login_required
-def sports():
-    request_url = f"https://api.the-odds-api.com/v4/sports?apiKey={API_KEY}"
-    data = requests.get(request_url)
-    data = data.json()
-    return data
-
 @lines_.route('/insert_scores', methods=['POST'])
 def call_insert_scores():
     insert_scores() 
@@ -182,9 +162,12 @@ def search_games():
     
     return render_template('games.html', pagination=pagination, games=games, current_user=current_user)
 
-#TODO: make it match current date – needs to be in sync with games fetch
-ODDS_COMMENCE_TIME_FROM = "2023-10-01T00:00:00Z"
+
 def get_odds_api_data():
+    current_date = datetime.now()
+    previous_day = current_date - timedelta(days=1)
+    previous_day_start = previous_day.replace(hour=0, minute=0, second=0, microsecond=0)
+    commence_time_from = previous_day_start.strftime("%Y-%m-%dT%H:%M:%SZ")
     data_list = []
     for sport in SPORTS:
         request_url = "https://api.the-odds-api.com/v4/sports/{sport}/odds?apiKey={api_key}&regions={regions}&markets={markets}&dateFormat=iso&oddsFormat={odds_format}&commenceTimeFrom={commence_time_from}".format(
@@ -193,7 +176,7 @@ def get_odds_api_data():
         markets=MARKETS,
         regions=REGIONS,
         odds_format=ODDS_FORMAT,
-        commence_time_from=ODDS_COMMENCE_TIME_FROM
+        commence_time_from=commence_time_from
         )
         response = requests.get(request_url)
         data = response.json()
@@ -267,13 +250,6 @@ def insert_odds():
     print("Finished adding new odds data")
     arbitrage.insert_arbitrage(game_book_map)
 
-
-@lines_.route('/insert_odds', methods=['POST'])
-def call_insert_odds():
-    insert_odds() 
-    return redirect(url_for('lines.odds'))
-
-
 @lines_.route('/lines/odds', methods=['GET'])
 def odds():
 
@@ -331,12 +307,8 @@ def odds():
 
     return render_template('odds.html', pagination=pagination, odds=odds, current_user=current_user)
 
-@lines_.route('/insert_arbitrage', methods=['POST'])
-def call_insert_arbitrage():
-    arbitrage.insert_arbitrage() 
-    return redirect(url_for('lines.arbitrage_opportunities'))
-
 @lines_.route('/lines/arbitrage', methods=['GET'])
+@login_required
 def arbitrage_opportunities():
     
     page = request.args.get('page', 1, type=int)
@@ -388,8 +360,6 @@ def arbitrage_opportunities():
         arbitrage[0].time_found_display = arbitrage_time_eastern.strftime('%b %d, %-I:%M %p ET')
 
     return render_template('arbitrage.html', pagination=pagination, arbitrages=arbitrages, current_user=current_user)
-
-
 
 def get_or_create(session, model, defaults=None, **kwargs):
     """

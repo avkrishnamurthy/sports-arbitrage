@@ -27,7 +27,7 @@ If postgres is installed correctly and is running, the following steps should wo
 Now we must configure the environment variables. Create a .env file in the project directory.
 
 Add the following:
-```SECRET_KEY="<put whatever you want here>"``
+```SECRET_KEY="<put whatever you want here>"```
 ```DB_USERNAME="<your username>"```
 ```DB_PASSWORD="<your password>"```
 ```DATABASE_URL="postgres://<your username>:<your password>!@localhost:5432/arbitrage_db"```

@@ -26,6 +26,7 @@ def check_user_exists():
     Used for user search feature 
     """
     username = request.json.get('username')
+    #Safe against sql injection because sqlalchemy automatically escapes parameters
     user = Person.query.filter_by(username=username).first()
     user_exists = True if user else False
     return jsonify({'exists': user_exists})
@@ -50,7 +51,10 @@ def profile(username):
     follower_users = set(user.follower.all())
     games_odds_modified = []
     if user.favorite_team:
-        
+        #Safe against sql injection
+        #Utilizes SQLAlchemy parameterized queries that automatically escapes parameters passed in
+        #Instead of doing '%' + user.favorite_team + '%', which would be at risk
+        user_favorite_team_pattern = '%{}%'.format(user.favorite_team)
         #Filtered to show upcoming games (almost acts like a schedule and potential win probability for the user's favorite team)
         now = datetime.now()
         games_odds = db.session.query(Games) \
@@ -68,7 +72,7 @@ def profile(username):
                 Games.last_update,
                 Odds.home_team_odds,
                 Odds.away_team_odds ) \
-            .filter((Games.home_team.ilike('%' + user.favorite_team + '%')) | (Games.away_team.ilike('%' + user.favorite_team + '%'))) \
+            .filter((Games.home_team.ilike(user_favorite_team_pattern)) | (Games.away_team.ilike(user_favorite_team_pattern))) \
             .filter((Games.commence_time > now)) \
             .filter((Odds.bookmaker_id == user.favorite_bookmaker_id) | (Odds.bookmaker_id.is_(None))) \
             .all()

@@ -54,13 +54,25 @@ def search_games():
         query = query.filter(func.DATE(Games.commence_time) == date_object)
 
     if team1_query:
-        query = query.filter((Games.home_team.ilike('%' + team1_query + '%')) | (Games.away_team.ilike('%' + team1_query + '%')))
+        #Safe against sql injection
+        #Utilizes SQLAlchemy parameterized queries that automatically escapes parameters passed in
+        #Instead of doing '%' + team1_query + '%', which would be at risk
+        team1_pattern = '%{}%'.format(team1_query)
+        query = query.filter((Games.home_team.ilike(team1_pattern)) | (Games.away_team.ilike(team1_pattern)))
 
     if team2_query:
-        query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
+        #Safe against sql injection
+        #Utilizes SQLAlchemy parameterized queries that automatically escapes parameters passed in
+        #Instead of doing '%' + team2_query + '%', which would be at risk
+        team2_pattern = '%{}%'.format(team2_query)
+        query = query.filter((Games.home_team.ilike(team2_pattern)) | (Games.away_team.ilike(team2_pattern)))
 
     if sport_title_query:
-        query = query.filter(Games.sport_title.ilike('%' + sport_title_query + '%'))
+        #Safe against sql injection
+        #Utilizes SQLAlchemy parameterized queries that automatically escapes parameters passed in
+        #Instead of doing '%' + sport_title_query + '%', which would be at risk
+        sport_title_pattern = '%{}%'.format(sport_title_query)
+        query = query.filter(Games.sport_title.ilike(sport_title_pattern))
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
@@ -116,13 +128,25 @@ def search_odds():
         query = query.filter(func.DATE(Games.commence_time) == date_object)
 
     if team1_query:
-        query = query.filter((Games.home_team.ilike('%' + team1_query + '%')) | (Games.away_team.ilike('%' + team1_query + '%')))
+        #Safe against sql injection
+        #Utilizes SQLAlchemy parameterized queries that automatically escapes parameters passed in
+        #Instead of doing '%' + team1_query + '%', which would be at risk
+        team1_pattern = '%{}%'.format(team1_query)
+        query = query.filter((Games.home_team.ilike(team1_pattern)) | (Games.away_team.ilike(team1_pattern)))
 
     if team2_query:
-        query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
+        #Safe against sql injection
+        #Utilizes SQLAlchemy parameterized queries that automatically escapes parameters passed in
+        #Instead of doing '%' + team2_query + '%', which would be at risk
+        team2_pattern = '%{}%'.format(team2_query)
+        query = query.filter((Games.home_team.ilike(team2_pattern)) | (Games.away_team.ilike(team2_pattern)))
 
     if bookmaker_query:
-        query = query.filter(Bookmakers.title.ilike(f'%{bookmaker_query}%'))
+        #Safe against sql injection
+        #Utilizes SQLAlchemy parameterized queries that automatically escapes parameters passed in
+        #Instead of doing '%' + bookmaker_query + '%', which would be at risk
+        bookmaker_pattern = '%{}%'.format(bookmaker_query)
+        query = query.filter(Bookmakers.title.ilike(bookmaker_pattern))
 
     query = query.order_by(Odds.last_update.desc())
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
@@ -186,10 +210,18 @@ def search_arbitrage():
         query = query.filter(func.DATE(Games.commence_time) == date_object)
 
     if team1_query:
-        query = query.filter((Games.home_team.ilike('%' + team1_query + '%')) | (Games.away_team.ilike('%' + team1_query + '%')))
+        #Safe against sql injection
+        #Utilizes SQLAlchemy parameterized queries that automatically escapes parameters passed in
+        #Instead of doing '%' + team1_query + '%', which would be at risk
+        team1_pattern = '%{}%'.format(team1_query)
+        query = query.filter((Games.home_team.ilike(team1_pattern)) | (Games.away_team.ilike(team1_pattern)))
 
     if team2_query:
-        query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
+        #Safe against sql injection
+        #Utilizes SQLAlchemy parameterized queries that automatically escapes parameters passed in
+        #Instead of doing '%' + team2_query + '%', which would be at risk
+        team2_pattern = '%{}%'.format(team2_query)
+        query = query.filter((Games.home_team.ilike(team2_pattern)) | (Games.away_team.ilike(team2_pattern)))
     
     #Ordering results by most recent to least recent, so that arbitrage results are most applicable and least likely to be stale
     query = query.order_by(ArbitrageOpportunity.time_found.desc())

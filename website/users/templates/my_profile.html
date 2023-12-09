@@ -60,7 +60,7 @@
             </div>
           
           </div>
-          <div class="dropdown">
+          <div class="a-dropdown">
             <div id="update-team-dropdown" class="dropdown-content">
             <form method="post" action="{{ url_for('users.favorite_team', username=current_user.username) }}">
                 <input type="text" id="team" name="team">
@@ -86,7 +86,7 @@
                 <button id="dropbtn" class="dropbtn">update</button>
                 <img class="sportsbook-image" src="{{favorite_bookmaker.image}}">
               </div>
-        <div class="dropdown">
+        <div class="a-dropdown">
             <div id="bookmakerDropdown" class="dropdown-content">
                 {% for bookmaker in bookmakers %}
                 <button id="bookmaker-button" onclick="setFavorite('{{ current_user.username}}', '{{bookmaker.id }}')" class="set-favorite-bookmaker-{{bookmaker.id}}">{{bookmaker.title}}</button>

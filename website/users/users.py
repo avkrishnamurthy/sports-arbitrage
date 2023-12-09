@@ -45,70 +45,70 @@ def profile(username):
     if not user: 
         flash("User does not exist", category="error")
         return redirect(url_for("home.home", _external=True))
+    
+    following_users = set(user.following.all())
+    follower_users = set(user.follower.all())
+    games_odds_modified = []
+    if user.favorite_team:
+        
+        #Filtered to show upcoming games (almost acts like a schedule and potential win probability for the user's favorite team)
+        now = datetime.now()
+        games_odds = db.session.query(Games) \
+            .outerjoin(Odds, Games.id == Odds.game_id) \
+            .add_columns(
+                Games.id,
+                Games.sport_key,
+                Games.sport_title,
+                Games.commence_time,
+                Games.completed,
+                Games.home_team,
+                Games.away_team,
+                Games.home_team_score,
+                Games.away_team_score,
+                Games.last_update,
+                Odds.home_team_odds,
+                Odds.away_team_odds ) \
+            .filter((Games.home_team.ilike('%' + user.favorite_team + '%')) | (Games.away_team.ilike('%' + user.favorite_team + '%'))) \
+            .filter((Games.commence_time > now)) \
+            .filter((Odds.bookmaker_id == user.favorite_bookmaker_id) | (Odds.bookmaker_id.is_(None))) \
+            .all()
+        
 
+        #Cleaning up odds and time display on frontend
+        for game_odd in games_odds:
+            eastern = pytz.timezone('US/Eastern')
+            commence_time_eastern = game_odd.commence_time
+            if commence_time_eastern:
+                commence_time_eastern = commence_time_eastern.astimezone(eastern)
+                commence_time_eastern = commence_time_eastern.strftime('%b %d, %-I:%M %p ET')
+            home_team_odds = ""
+            if game_odd.home_team_odds:
+                home_team_odds = game_odd.home_team_odds
+                if game_odd.home_team_odds > 0: home_team_odds = f"+{game_odd.home_team_odds}"
+            away_team_odds = ""
+            if game_odd.away_team_odds:
+                away_team_odds = game_odd.away_team_odds
+                if game_odd.away_team_odds > 0: away_team_odds = f"+{game_odd.away_team_odds}"
+            game_odd_dict = {
+                'id': game_odd.id,
+                'sport_key': game_odd.sport_key,
+                'sport_title': game_odd.sport_title,
+                'commence_time': commence_time_eastern,
+                'completed': game_odd.completed,
+                'home_team': game_odd.home_team,
+                'away_team': game_odd.away_team,
+                'home_team_score': game_odd.home_team_score,
+                'away_team_score': game_odd.away_team_score,
+                'last_update': game_odd.last_update,
+                'home_team_odds': home_team_odds,
+                'away_team_odds': away_team_odds
+            }
+
+            games_odds_modified.append(game_odd_dict)
     if current_user.username == username: 
-        #If my profile, show games and odds associated with my favorite team and bookmaker
-        games_odds_modified = []
         bookmakers = Bookmakers.query.all()
-        if current_user.favorite_team:
-            
-            #Filtered to show upcoming games (almost acts like a schedule and potential win probability for the user's favorite team)
-            now = datetime.now()
-            games_odds = db.session.query(Games) \
-                .outerjoin(Odds, Games.id == Odds.game_id) \
-                .add_columns(
-                    Games.id,
-                    Games.sport_key,
-                    Games.sport_title,
-                    Games.commence_time,
-                    Games.completed,
-                    Games.home_team,
-                    Games.away_team,
-                    Games.home_team_score,
-                    Games.away_team_score,
-                    Games.last_update,
-                    Odds.home_team_odds,
-                    Odds.away_team_odds ) \
-                .filter((Games.home_team.ilike('%' + current_user.favorite_team + '%')) | (Games.away_team.ilike('%' + current_user.favorite_team + '%'))) \
-                .filter((Games.commence_time > now)) \
-                .filter((Odds.bookmaker_id == current_user.favorite_bookmaker_id) | (Odds.bookmaker_id.is_(None))) \
-                .all()
-            
-
-            #Cleaning up odds and time display on frontend
-            for game_odd in games_odds:
-                eastern = pytz.timezone('US/Eastern')
-                commence_time_eastern = game_odd.commence_time
-                if commence_time_eastern:
-                    commence_time_eastern = commence_time_eastern.astimezone(eastern)
-                    commence_time_eastern = commence_time_eastern.strftime('%b %d, %-I:%M %p ET')
-                home_team_odds = ""
-                if game_odd.home_team_odds:
-                    home_team_odds = game_odd.home_team_odds
-                    if game_odd.home_team_odds > 0: home_team_odds = f"+{game_odd.home_team_odds}"
-                away_team_odds = ""
-                if game_odd.away_team_odds:
-                    away_team_odds = game_odd.away_team_odds
-                    if game_odd.away_team_odds > 0: away_team_odds = f"+{game_odd.away_team_odds}"
-                game_odd_dict = {
-                    'id': game_odd.id,
-                    'sport_key': game_odd.sport_key,
-                    'sport_title': game_odd.sport_title,
-                    'commence_time': commence_time_eastern,
-                    'completed': game_odd.completed,
-                    'home_team': game_odd.home_team,
-                    'away_team': game_odd.away_team,
-                    'home_team_score': game_odd.home_team_score,
-                    'away_team_score': game_odd.away_team_score,
-                    'last_update': game_odd.last_update,
-                    'home_team_odds': home_team_odds,
-                    'away_team_odds': away_team_odds
-                }
-
-                games_odds_modified.append(game_odd_dict)
-
-        return render_template('my_profile.html', current_user = current_user, favorite_bookmaker=favorite_bookmaker, bookmakers=bookmakers, games=games_odds_modified)
-    return render_template('profile.html', current_user = current_user, user=user, favorite_bookmaker=favorite_bookmaker)
+        return render_template('my_profile.html', current_user = current_user, user=user, favorite_bookmaker=favorite_bookmaker, bookmakers=bookmakers, games=games_odds_modified, len=len, following=following_users, followers=follower_users)
+    return render_template('profile.html', current_user = current_user, user=user, favorite_bookmaker=favorite_bookmaker, games=games_odds_modified, len=len, following=following_users, followers=follower_users)
 
 
 @users_.route('/follow/<username>', methods=['POST'])

@@ -71,7 +71,7 @@
                     <td>{{ arb[1].away_team }}</td>
                     <td>{{ arb[3].title }}</td>
                     <td>{{ arb[0].away_team_odds_display }}</td>
-                    <td>{{ arb[0].profit_percentage_display}}</td>
+                    <td class="value">{{ arb[0].profit_percentage_display}}%</td>
                     <td>{{ arb[0].time_found_display }}</td>
                 </tr>
                 {% endfor %}
@@ -82,4 +82,5 @@
     {% endif %}
 </body>
 </html>
+<script src="{{url_for('lines.static', filename='arbitrage.js')}}"></script>
 {% endblock %}

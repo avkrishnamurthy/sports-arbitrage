@@ -27,12 +27,19 @@ If postgres is installed correctly and is running, the following steps should wo
 Now we must configure the environment variables. Create a .env file in the project directory.
 
 Add the following:
+
 ```SECRET_KEY="<put whatever you want here>"```
+
 ```DB_USERNAME="<your username>"```
+
 ```DB_PASSWORD="<your password>"```
+
 ```DATABASE_URL="postgres://<your username>:<your password>!@localhost:5432/arbitrage_db"```
+
 ```FLASK_APP="main"```
+
 ```API_KEY="<API_KEY>"```
+
 
 For the API_KEY, you will need to go to TheOddsApi and get your own key.
 

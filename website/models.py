@@ -59,7 +59,6 @@ class Bookmakers(db.Model):
     title = db.Column(db.Text, nullable=False)
     image = db.Column(db.Text, nullable=True)
 
-
 class ArbitrageOpportunity(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     game_id = db.Column(db.String, db.ForeignKey('games.id'), nullable=False)

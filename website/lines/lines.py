@@ -1,139 +1,54 @@
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for
 from flask_login import login_required, current_user
 from website import db
-import requests
-import os
 from dotenv import load_dotenv
 from website.models import Games, Bookmakers, Odds, ArbitrageOpportunity
-from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import func
-from sqlalchemy.orm.exc import NoResultFound
-from . import arbitrage
 from sqlalchemy.orm import aliased
-from celery import shared_task
-from collections import defaultdict
 import pytz
+from . import the_odds_api
 
+#blueprint for lines
 lines_ = Blueprint('lines', __name__, template_folder='templates', static_url_path='lines/', static_folder='static')
 
-load_dotenv()
-
-API_KEY = os.getenv("API_KEY")
-MARKETS = "h2h"
-REGIONS = "us"
-ODDS_FORMAT = "american"
-SPORTS = [
-    "basketball_nba",
-    "americanfootball_nfl",
-    "americanfootball_ncaaf",
-    "baseball_mlb",
-]
-DAYS_FROM = "3"
-
-# API CALL
-def get_games_api_data():
-    data_list = []
-    for sport in SPORTS:
-        request_url = "https://api.the-odds-api.com/v4/sports/{sport}/scores/?apiKey={api_key}&daysFrom={days_from}".format(
-        sport = sport,
-        api_key= API_KEY,
-        days_from = DAYS_FROM
-        )
-        response = requests.get(request_url)
-        data = response.json()
-        data_list.append(data)
-    return data_list
-
-
-# HELPER FUNCTION TO PARSE API JSON RESPONSE
-def extract_scores(item):
-    home_score = None
-    away_score = None
-    if item['scores']:
-        for score in item['scores']:
-            if score['name'] == item['home_team']:
-                home_score = int(score['score'])
-            elif score['name'] == item['away_team']:
-                away_score = int(score['score'])
-    return home_score, away_score
-
-@shared_task(ignore_result=False)
-def insert_scores():
-    print("Fetching new game data")
-    data_list = get_games_api_data()
-    if not data_list:
-        return
-    for data in data_list:
-        if not data: continue
-        for item in data:
-            home_score, away_score = extract_scores(item)
-            item['home_team_score'] = home_score
-            item['away_team_score'] = away_score
-            stmt = insert(Games).values(
-            id=item['id'],
-            sport_key=item['sport_key'],
-            sport_title=item['sport_title'],
-            commence_time=item['commence_time'],
-            completed=item['completed'],
-            home_team=item['home_team'],
-            away_team=item['away_team'],
-            home_team_score=item['home_team_score'],
-            away_team_score=item['away_team_score'],
-            last_update=item['last_update']
-        )
-        
-            update_dict = {
-                Games.sport_key: item['sport_key'],
-                Games.sport_title: item['sport_title'],
-                Games.commence_time: item['commence_time'],
-                Games.completed: item['completed'],
-                Games.home_team: item['home_team'],
-                Games.away_team: item['away_team'],
-                Games.home_team_score: item['home_team_score'],
-                Games.away_team_score: item['away_team_score'],
-                Games.last_update: item['last_update']
-            }
-
-            stmt = stmt.on_conflict_do_update(
-                index_elements=[Games.id],
-                set_=update_dict,
-                where=(Games.last_update.is_(None) | ((item['last_update'] is not None) and (Games.last_update < item['last_update'])))
-            )
-
-            db.session.execute(stmt)
-    db.session.commit()
-    print("Finished adding game data")
-    insert_odds()
-
-@lines_.route('/insert_scores', methods=['POST'])
-def call_insert_scores():
-    insert_scores() 
-    return redirect(url_for('lines.search_games'))
-
 @lines_.route('/lines/games', methods=['GET'])
+@login_required
 def search_games():
+    """
+    READ/GET endpoint for the games feature
+    Endpoint that allows users to query database for any games
+    Filter options: date, team 1, team 2, sport, live
+    Utilizes pagination to improve query efficiency and make results more digestible
+    """
 
+    #Standard page size
     page = request.args.get('page', 1, type=int)
     per_page = 10
     query = db.session.query(Games)
 
+    #Getting query parameters from get request
     date_query = request.args.get('date')
     team1_query = request.args.get('team1')
     team2_query = request.args.get('team2')
     sport_title_query = request.args.get('sport_title')
     live_query = request.args.get('live')
 
+    #Live game implementation
+    #Gets current time, and if current time is past commence time and completed not set, we know it is live 
     if live_query:
         now = datetime.now()
 
+        #one day earlier needed to ensure that if a game has gone past midnight, it is still being checked
         one_day_earlier = now - timedelta(days=1)
+        #Also check that start time is earlier than current, and also that completed flag has not been set to true
         query = query.filter(
             (Games.commence_time >= one_day_earlier) & 
             (Games.commence_time < now) & 
             (Games.completed == False)
         )
         
+    #Filtering games based on query parameters
     if date_query:
         date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
         query = query.filter(func.DATE(Games.commence_time) == date_object)
@@ -150,6 +65,7 @@ def search_games():
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
     for game in games:
+        #making the frontend data look pretty
         eastern = pytz.timezone('US/Eastern')
         game_time_eastern = game.commence_time.astimezone(eastern)
         game.commence_time_display = game_time_eastern.strftime('%b %d, %-I:%M %p ET')
@@ -162,108 +78,28 @@ def search_games():
     
     return render_template('games.html', pagination=pagination, games=games, current_user=current_user)
 
-
-def get_odds_api_data():
-    current_date = datetime.now()
-    previous_day = current_date - timedelta(days=1)
-    previous_day_start = previous_day.replace(hour=0, minute=0, second=0, microsecond=0)
-    commence_time_from = previous_day_start.strftime("%Y-%m-%dT%H:%M:%SZ")
-    data_list = []
-    for sport in SPORTS:
-        request_url = "https://api.the-odds-api.com/v4/sports/{sport}/odds?apiKey={api_key}&regions={regions}&markets={markets}&dateFormat=iso&oddsFormat={odds_format}&commenceTimeFrom={commence_time_from}".format(
-        sport=sport,
-        api_key=API_KEY,
-        markets=MARKETS,
-        regions=REGIONS,
-        odds_format=ODDS_FORMAT,
-        commence_time_from=commence_time_from
-        )
-        response = requests.get(request_url)
-        data = response.json()
-        data_list.append(data)
-    return data_list
-
-def insert_odds():
-    print("Fetching new odds data")
-    data_list = get_odds_api_data()
-    game_book_map = defaultdict(list)
-    if not data_list:
-        return
-    for data in data_list:
-        if not data:
-            continue
-        for item in data:
-            if not item: continue
-            # Check if the game_id exists in the Games table
-            game_id = item['id']
-            try:
-                game = db.session.query(Games).filter_by(id=game_id).one()
-            except NoResultFound:
-                continue  # Skip inserting odds if game_id doesn't exist in Games
-
-            for bookmaker in item['bookmakers']:
-                # Get or create the bookmaker
-                bookmaker_obj, _ = get_or_create(db.session, Bookmakers, key=bookmaker['key'], defaults={'title': bookmaker['title']})
-                
-                for market in bookmaker['markets']:
-                    home_team_odds = None
-                    away_team_odds = None
-                    draw_odds = None
-                    if market['key'] == "h2h":
-                        for outcome in market['outcomes']:
-                            outcome_name = outcome['name']
-                            if outcome_name == item['home_team']:
-                                home_team_odds = outcome['price']
-                            elif outcome_name == item['away_team']:
-                                away_team_odds = outcome['price']
-                            elif outcome_name == 'Draw':
-                                draw_odds = outcome['price']
-                            
-                        stmt = insert(Odds).values(
-                            game_id=game.id,
-                            bookmaker_id=bookmaker_obj.id,
-                            home_team_odds = home_team_odds,
-                            away_team_odds = away_team_odds,
-                            sport_key=item['sport_key'],
-                            sport_title=item['sport_title'],
-                            draw_odds = draw_odds,
-                            last_update=market['last_update']
-                        )
-
-                        update_dict = {
-                            Odds.home_team_odds: home_team_odds,
-                            Odds.away_team_odds: away_team_odds,
-                            Odds.draw_odds: draw_odds,
-                            Odds.last_update: market['last_update']
-                        }
-
-                        stmt = stmt.on_conflict_do_update(
-                            index_elements=[Odds.game_id, Odds.bookmaker_id],
-                            set_=update_dict,
-                            where=(Odds.last_update.is_(None) | ((market['last_update'] is not None) and (Odds.last_update < market['last_update'])))
-                        )
-
-                        game_book_map[game_id].append(bookmaker_obj.id)
-                        db.session.execute(stmt)
-
-    db.session.commit()
-    print("Finished adding new odds data")
-    arbitrage.insert_arbitrage(game_book_map)
-
 @lines_.route('/lines/odds', methods=['GET'])
-def odds():
-
+@login_required
+def search_odds():
+    """
+    READ/GET endpoint for the odds feature
+    Endpoint that allows users to query database for any odds
+    Filter options: date, team 1, team 2, bookmaker, live
+    Utilizes pagination to improve query efficiency and make results more digestible
+    """
     page = request.args.get('page', 1, type=int)
     per_page = 10
     query = db.session.query(Odds).join(Games).join(Bookmakers)
 
+    #Getting query parameters
     date_query = request.args.get('date')
     team1_query = request.args.get('team1')
     team2_query = request.args.get('team2')
     bookmaker_query = request.args.get('bookmaker')
-
     live_query = request.args.get('live')
 
+    #Live game implementation
+    #Gets current time, and if current time is past commence time and completed not set, we know it is live 
     if live_query:
         now = datetime.now()
 
@@ -274,6 +110,7 @@ def odds():
             (Games.completed == False)
         )
 
+    #Filtering by query parameters
     if date_query:
         date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
         query = query.filter(func.DATE(Games.commence_time) == date_object)
@@ -290,6 +127,7 @@ def odds():
     query = query.order_by(Odds.last_update.desc())
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     odds = pagination.items
+    #Pretty up odds display (to match how American odds look with - and +)
     for odd in odds:
         odd.home_team_odds_display = odd.home_team_odds
         odd.away_team_odds_display = odd.away_team_odds
@@ -298,6 +136,7 @@ def odds():
         if odd.away_team_odds > 0:
             odd.away_team_odds_display = '+'+str(odd.away_team_odds)
 
+        #Making the last update time readable
         eastern = pytz.timezone('US/Eastern')
         last_update_eastern = odd.last_update
         if last_update_eastern: 
@@ -309,12 +148,21 @@ def odds():
 
 @lines_.route('/lines/arbitrage', methods=['GET'])
 @login_required
-def arbitrage_opportunities():
-    
+def search_arbitrage():
+    """
+    READ/GET endpoint for the arbitrage feature
+    Endpoint that allows users to query database for any arbitrage opportunity
+    Filter options: date, team 1, team 2
+    Utilizes pagination to improve query efficiency and make results more digestible
+    """
     page = request.args.get('page', 1, type=int)
     per_page = 10
+
+    #Need an alias for this table since we have a home bookmaker and an away bookmaker
     AwayBookmakers = aliased(Bookmakers)
 
+    #Joining tables to make sure we have all the data we want to present on the frontend
+    #Want to show the teams, and the bookmaker (so people know where to bet that line!)
     query = db.session.query(
         ArbitrageOpportunity,
         Games,
@@ -328,9 +176,11 @@ def arbitrage_opportunities():
         AwayBookmakers, ArbitrageOpportunity.away_odds_bookmaker_id == AwayBookmakers.id
     )
 
+    #Query parameters
     date_query = request.args.get('date')
     team1_query = request.args.get('team1')
     team2_query = request.args.get('team2')
+    #Filtering by query parameters
     if date_query:
         date_object = datetime.strptime(date_query, '%Y-%m-%d').date()
         query = query.filter(func.DATE(Games.commence_time) == date_object)
@@ -341,11 +191,12 @@ def arbitrage_opportunities():
     if team2_query:
         query = query.filter((Games.home_team.ilike('%' + team2_query + '%')) | (Games.away_team.ilike('%' + team2_query + '%')))
     
-
+    #Ordering results by most recent to least recent, so that arbitrage results are most applicable and least likely to be stale
     query = query.order_by(ArbitrageOpportunity.time_found.desc())
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     arbitrages = pagination.items
 
+    #Cleaning up display on frontend adding temporary attributes
     for arbitrage in arbitrages:
         arbitrage[0].profit_percentage_display = str(round(abs(arbitrage[0].profit_percentage) * 100, 2))+"%"
         arbitrage[0].home_team_odds_display = arbitrage[0].home_odds
@@ -361,16 +212,12 @@ def arbitrage_opportunities():
 
     return render_template('arbitrage.html', pagination=pagination, arbitrages=arbitrages, current_user=current_user)
 
-def get_or_create(session, model, defaults=None, **kwargs):
+@lines_.route('/insert-data', methods=['POST'])
+@login_required
+def call_insert_data():
     """
-    Gets an object or creates and returns the object if not exists
+    Endpoint used in case we want to click a button to fetch and upsert new data instead of having the celery workers do it
+    Can be useful if we don't want to spin up redis, celery beat, and celery and just want to get the new data easily but not automatically
     """
-    instance = session.query(model).filter_by(**kwargs).one_or_none()
-    if instance:
-        return instance, False
-    else:
-        params = {**kwargs, **(defaults or {})}
-        instance = model(**params)
-        session.add(instance)
-        session.commit()
-        return instance, True
+    the_odds_api.insert_data() 
+    return redirect(url_for('lines.search_games'))

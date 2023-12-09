@@ -8,7 +8,7 @@ function handleSearchUserFormSubmit(event) {
     const username = document.getElementById('search-user-input').value;
     const url = '/users/' + username;
 
-    // Make a request to the server-side existence check API
+    // Make a request to the server-side check-user-exists API
     fetch('/check-user-exists', {
         method: 'POST',
         body: JSON.stringify({ username: username }),
@@ -19,7 +19,7 @@ function handleSearchUserFormSubmit(event) {
         .then(response => response.json())
         .then(data => {
         if (data.exists) {
-            window.location.href = url; // Redirect to the user's profile page
+            window.location.href = url; // Redirect to the user's profile page if that user exists
         } else {
             const errorElement = document.getElementById('search-user-error');
             errorElement.textContent = 'User does not exist';

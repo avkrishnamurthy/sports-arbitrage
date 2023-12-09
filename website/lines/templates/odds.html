@@ -10,7 +10,7 @@
 </head>
 <body>
     <br>
-    <form class="search-bar" method="get" action="{{ url_for('lines.odds') }}">
+    <form class="search-bar" method="get" action="{{ url_for('lines.search_odds') }}">
         <div class="form-group">
             <label for="date">Date:</label>
             <input type="date" id="date" name="date">
@@ -60,7 +60,7 @@
                         {% for page_num in pagination.iter_pages() %}
                             {% if page_num %}
                                 {% if page_num != pagination.page %}
-                                <li><a href="{{ url_for('lines.odds', page=page_num, date=request.args.get('date'), team1=request.args.get('team1'), team2=request.args.get('team2'), bookmaker=request.args.get('bookmaker'), live=request.args.get('live')) }}">{{ page_num }}</a></li>
+                                <li><a href="{{ url_for('lines.search_odds', page=page_num, date=request.args.get('date'), team1=request.args.get('team1'), team2=request.args.get('team2'), bookmaker=request.args.get('bookmaker'), live=request.args.get('live')) }}">{{ page_num }}</a></li>
                                 {% else %}
                                     <li class='active'>{{ page_num }}</li>
                                 {% endif %}

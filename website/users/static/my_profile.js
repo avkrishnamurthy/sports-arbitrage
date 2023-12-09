@@ -1,3 +1,5 @@
+
+//Function to make POST request to endpoint when clicking button to set favorite bookmaker
 function setFavorite(username, favoriteId) {
     fetch(`/users/${username}/bookmaker`, {
         method: "POST",

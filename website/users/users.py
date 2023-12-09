@@ -21,6 +21,10 @@ load_dotenv()
 @users_.route('/check-user-exists', methods=['POST'])
 @login_required
 def check_user_exists():
+    """
+    Endpoint used to validate if a user exists
+    Used for user search feature 
+    """
     username = request.json.get('username')
     user = Person.query.filter_by(username=username).first()
     user_exists = True if user else False
@@ -30,6 +34,12 @@ def check_user_exists():
 @users_.route('/users/<username>', methods=['GET'])
 @login_required
 def profile(username):
+    """
+    Endpoint for profile
+    Will either be for the current user's profile, or the profile of a user they are visiting
+    If current user's profile, they get more data and have options to modify data
+    If other user's profile, they have less data and no write authorization
+    """
     user = Person.query.filter_by(username=username).first()
     favorite_bookmaker = Bookmakers.query.filter_by(id=user.favorite_bookmaker_id).first()
     if not user: 
@@ -37,10 +47,12 @@ def profile(username):
         return redirect(url_for("home.home", _external=True))
 
     if current_user.username == username: 
+        #If my profile, show games and odds associated with my favorite team and bookmaker
         games_odds_modified = []
         bookmakers = Bookmakers.query.all()
         if current_user.favorite_team:
             
+            #Filtered to show upcoming games (almost acts like a schedule and potential win probability for the user's favorite team)
             now = datetime.now()
             games_odds = db.session.query(Games) \
                 .outerjoin(Odds, Games.id == Odds.game_id) \
@@ -63,6 +75,7 @@ def profile(username):
                 .all()
             
 
+            #Cleaning up odds and time display on frontend
             for game_odd in games_odds:
                 eastern = pytz.timezone('US/Eastern')
                 commence_time_eastern = game_odd.commence_time
@@ -94,7 +107,6 @@ def profile(username):
 
                 games_odds_modified.append(game_odd_dict)
 
-
         return render_template('my_profile.html', current_user = current_user, favorite_bookmaker=favorite_bookmaker, bookmakers=bookmakers, games=games_odds_modified)
     return render_template('profile.html', current_user = current_user, user=user, favorite_bookmaker=favorite_bookmaker)
 
@@ -102,6 +114,11 @@ def profile(username):
 @users_.route('/follow/<username>', methods=['POST'])
 @login_required
 def follow(username):
+    """
+    Endpoint to follow a user
+    Simply adds current user to list of user they requested to follow list of followers
+    If they were already following, unfollows them
+    """
     follow_json = json.loads(request.data)
     follow_username = follow_json['username']
     user = Person.query.filter_by(username=follow_username).first()
@@ -109,6 +126,7 @@ def follow(username):
         flash("User does not exist", category="error")
         return redirect(url_for("users.profile", username=current_user.username))
 
+    #Determines whether to follow or unfollow based on if user is currently following
     if current_user in user.follower:
         user.follower.remove(current_user)
     else:
@@ -120,6 +138,9 @@ def follow(username):
 @users_.route('users/<username>/team', methods=['POST'])
 @login_required
 def favorite_team(username):
+    """
+    Endpoint that allows users to set their favorite team (just to some string, since our database has no concept of a team table)
+    """
     user = Person.query.filter_by(username=username).first()
     team_info = request.form.get('team')
     user.favorite_team = team_info
@@ -129,6 +150,10 @@ def favorite_team(username):
 @users_.route('users/<username>/bookmaker', methods=['POST'])
 @login_required
 def favorite_bookmaker(username):
+    """
+    Endpoint to allow users to set their favorite bookmaker
+    Only allow users to select of bookmakers that are in the database on frontend
+    """
     user = Person.query.filter_by(username=username).first()
     favorite_json = json.loads(request.data)
     favorite_id = favorite_json['favoriteId']

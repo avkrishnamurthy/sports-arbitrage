@@ -12,12 +12,15 @@ def default():
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
+    #Don't want already logged in users to log in again
     if current_user.is_authenticated:
         return redirect(url_for('home.home', _external=True))
+    #If trying to log in, get username and password
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
 
+        #Check if hashed password matches hash/salted password in DB
         user = Person.query.filter_by(username=username).first()
         if user:
             if check_password_hash(user.password, password):
@@ -42,9 +45,11 @@ def logout():
 
 @auth.route('/sign-up', methods=['GET', 'POST'])
 def sign_up():
+    #Don't let logged in users sign up again
     if current_user.is_authenticated:
         return redirect(url_for('home.home', _external=True))
     if request.method == 'POST':
+        #POST request means they have submitted sign up
         email = request.form.get('email')
         username = request.form.get('username')
         first_name = request.form.get('firstName')
@@ -53,6 +58,7 @@ def sign_up():
 
         email_user = Person.query.filter_by(email=email).first()
         username_user = Person.query.filter_by(username=username).first()
+        #Sign up constraints, don't want too easy password
         if email_user:
             flash('Email already in use.', category='error')
         elif username_user:

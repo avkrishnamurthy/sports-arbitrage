@@ -7,4 +7,8 @@ home_ = Blueprint('home', __name__, template_folder='templates', static_url_path
 @home_.route('/home')
 @login_required
 def home():
+    """
+    Page users are redirected to after sign up or log in
+    Should explain the website and how it works and how it can be used
+    """
     return render_template("home.html", user=current_user)

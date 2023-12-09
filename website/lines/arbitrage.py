@@ -4,13 +4,31 @@ from sqlalchemy.orm.exc import NoResultFound
 
 
 def convert_odds_to_implied(us_odds):
+    """
+    Odds are commonly displayed in terms of US odds, which can look like +280, or -340
+    To extract meaning from this, we must convert them to implied odds
+    Example:
+    +280: To convert a "+" odd, we do 100/(100+number), or in this case, 100/(100+280) = 100/380
+    To convert a "+" odd, we do 100/(100+)
+    -340: To convert a "-" odd, we do number/(number+100), or in this case, 340/(340+100) = 340/440
+    """
     if us_odds < 0: return abs(us_odds) / (abs(us_odds) + 100)
     return 100 / (us_odds + 100)
 
 def calculate_arbitrage(odds_1, odds_2):
+    """
+    The arbitrage is how much less than 1 the implied odds sum to
+    E.g. if the implied odds of team 1 winning is 40% and the implied odds of team 2 winning is 50%, we have an arbitrage opportunity
+    We can guarantee a profit by betting the right proportion of money on each side of the game
+    """
     return (convert_odds_to_implied(odds_1)+convert_odds_to_implied(odds_2))
 
 def find_arbitrage(game_book_map):
+    """
+    Uses the map of game ids to bookmaker ids to find arbitrage opportunities
+    Checks every pair of bookmakers for a game, and calculates arbitrage between home and away odds for each
+    Ignores duplicate arbitrage opportunities by checking if already exists in database, else creates a new one
+    """
     print("Finding arbitrage opportunities")
     if not game_book_map or len(game_book_map)==0: return None
     arbitrage_opps = []
@@ -63,6 +81,9 @@ def find_arbitrage(game_book_map):
     return arbitrage_opps
 
 def insert_arbitrage(game_book_map):
+    """
+    Finds arbitrages, then inserts them into the database at once (batch to speed up inserts)
+    """
     arbitrage_opps = find_arbitrage(game_book_map)
     db.session.add_all(arbitrage_opps)
     db.session.commit()

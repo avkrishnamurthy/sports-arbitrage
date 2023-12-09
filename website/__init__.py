@@ -14,6 +14,8 @@ DB_NAME = "arbitrage_db"
 
 
 def create_app():
+
+    #Setting up flask app, database, sessions
     load_dotenv()
     app = Flask(__name__)
     app.config['SECRET_KEY'] = getenv('SECRET_KEY')
@@ -25,7 +27,7 @@ def create_app():
     sess.init_app(app)
     db.init_app(app)
 
-    # from . import views
+    #Registering components of our system
     from .auth.auth import auth
     from .home.home import home_
     from .lines.lines import lines_
@@ -36,7 +38,10 @@ def create_app():
     app.register_blueprint(lines_, url_prefix='/')
     app.register_blueprint(users_, url_prefix='/')
 
-    from .lines import lines
+    #Celery, Celery Beat, Redis configuration
+    from .lines import the_odds_api
+    #Configuration used to set redis as the message broker for our celery workers
+    #Also setting the beat schedule that will orchestrate our celery workers to run every "x" minutes
     app.config.from_mapping(
         CELERY=dict(
             broker_url='redis://localhost:6379/0',
@@ -44,7 +49,7 @@ def create_app():
             task_ignore_result=True,
             beat_schedule={
                 "fetch-games-odds": {
-                    "task": "website.lines.lines.insert_scores",
+                    "task": "website.lines.the_odds_api.insert_data",
                     "schedule": crontab(minute="*/5"),
                 }
             },
@@ -57,20 +62,19 @@ def create_app():
     with app.app_context():
         db.create_all()
 
-
-    
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
 
+    #Used for login_required decorator
     @login_manager.user_loader
     def load_user(id):
         return Person.query.get(int(id))
 
     return app
 
-
-def create_database(app):
-    if not path.exists('website/' + DB_NAME):
-        db.create_all(app=app)
-        print('Created Database!')
+#Used for initial database, not needed anymore after postgres
+# def create_database(app):
+#     if not path.exists('website/' + DB_NAME):
+#         db.create_all(app=app)
+#         print('Created Database!')

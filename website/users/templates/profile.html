@@ -5,6 +5,7 @@
 <link
       rel="stylesheet"
       href="{{url_for('users.static', filename='profile.css')}}">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 <head>
     <title>Profile</title>
 </head>
@@ -12,11 +13,62 @@
 
     {% if user %}
     <div class='user-details'>
-    <h1>{{user.username}}'s Profile</h1>
-        <p>First Name: {{user.first_name}}</p>
-        <p>Email: {{user.email}}</p>
+    <h1 id="profile-header">{{user.username}}'s Profile</h1>
         {% if current_user.is_authenticated %}
         {% if current_user.id != user.id %}
+        <div class="follow-following">
+            <ul class="follow-following-list">
+              <li id="num-follower">{{len(followers)}} <button type="button" id="follower-button">
+                followers
+              </button></li>
+              <li id="num-following">{{len(following) }} <button type="button" id="following-button">following</button></li>
+            </ul>
+        </div>
+
+        <div id="myModal1" class="custom-modal">
+            <div class="custom-modal-content">
+              <div class="custom-modal-header">
+                <span class="custom-close firstClose">&times;</span>
+                <h5 class="modal-title" id="followersModalLabel">Followers</h5>
+              </div>
+              <div class="custom-modal-body">
+                <ul class="list-group">
+                    {% for follower in followers%}
+                    <li class="list-group-item"><a id='profile-link' href="{{ url_for('users.profile', username = follower.username) }}">@{{follower.username}}</a>
+                      {%if follower.id==current_user.id%}
+                      {%else%}<button type="button" id='follower-{{follower.id}}' class="togglefollow" onclick="toggleFollowModal('{{ follower.username}}', '{{follower.id }}', 'follower')">{% if follower in current_user.following %}Unfollow {%else%}Follow{%endif%}</button>
+                      {%endif%}
+                          </li>
+                    {%endfor%}
+                  </ul>
+              </div>
+            </div>
+          
+          </div>
+
+          <div id="myModal2" class="custom-modal">
+            <div class="custom-modal-content">
+              <div class="custom-modal-header">
+                <span class="custom-close secondClose">&times;</span>
+                <h5 class="modal-title" id="followersModalLabel">Followers</h5>
+              </div>
+              <div class="custom-modal-body">
+                <ul class="list-group">
+                    {% for follow in following%}
+                    <li class="list-group-item"><a id='profile-link' href="{{ url_for('users.profile', username = follow.username) }}">@{{follow.username}}</a>
+                      {%if follow.id==current_user.id%}
+                      {%else%}<button type="button" id='following-{{follow.id}}' class="togglefollow" onclick="toggleFollowModal('{{ follow.username}}', '{{follow.id }}', 'following')">{% if follow in current_user.following %}Unfollow {%else%}Follow{%endif%}</button>
+                      {%endif%}
+                          </li>
+                    {%endfor%}
+              </div>
+            </div>
+          
+          </div>
+          
+          
+          
+
         {% if current_user in user.follower %}
         <button type="button" class="unfollow-button" onclick="toggleFollow('{{ user.username }}')">Unfollow</button>
                 {% else %}
@@ -24,13 +76,71 @@
                 {% endif %}
         {% endif %}
         {% endif %}
-        <img src={{favorite_bookmaker.image}}>
+
+        <div class="sportsbook-container">
+            <div class="sportsbook-header">
+              <span>Favorite Team</span>
+            </div>
+            <br>
+            <br>
+            <h3>{{user.favorite_team}}</h3>
+          </div>
         <br>
-        <p id='favorite-team'>Favorite Team: {{user.favorite_team}} 
+
+        <div class="sportsbook-container">
+            <div class="sportsbook-header">
+              <span>Favorite Sportsbook</span>
+            </div>
+            <img class="sportsbook-image" src="{{favorite_bookmaker.image}}">
+          </div>
+        <br>
         </div>
+        {% if games %}
+        <h2 align="center">Upcoming {{user.favorite_team}} Games:</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Home</th>
+                    <th>Away</th>
+                    <th>Start Time</th>
+                    <th>Home Odds</th>
+                    <th>Away Odds</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for game in games %}
+                <tr>
+                    <td>{{ game.home_team }}</td>
+                    <td>{{ game.away_team }}</td>
+                    <td>{{ game.commence_time }}</td>
+                    <td>{{game.home_team_odds}}</td>
+                    <td>{{game.away_team_odds}}</td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+        {% endif %}
     {% else %}
         <p>No user found.</p>
     {% endif %}
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
 </body>
 <script src="{{url_for('users.static', filename='profile.js')}}"></script>
 </html>

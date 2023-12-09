@@ -198,7 +198,7 @@ def search_arbitrage():
 
     #Cleaning up display on frontend adding temporary attributes
     for arbitrage in arbitrages:
-        arbitrage[0].profit_percentage_display = str(round(abs(arbitrage[0].profit_percentage) * 100, 2))+"%"
+        arbitrage[0].profit_percentage_display = round(abs(arbitrage[0].profit_percentage) * 100, 2)
         arbitrage[0].home_team_odds_display = arbitrage[0].home_odds
         arbitrage[0].away_team_odds_display = arbitrage[0].away_odds
         if arbitrage[0].home_odds > 0:

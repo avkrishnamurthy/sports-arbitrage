@@ -7,9 +7,41 @@
 <link
       rel="stylesheet"
       href="{{url_for('home.static', filename='home.css')}}">
-<body>
-  Home Page
-</body>
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Arbitrage Sports Betting App</title>
+      </head>
+      <body>
+          <main>
+              <section id="description">
+                  <h2>Description</h2>
+                  <p>Our web app leverages the concept of arbitrage in the sports betting market to generate a guaranteed return on investment. It aggregates and analyzes betting lines across multiple bookmakers in live time to identify profitable opportunities. But it also aims to serve as a social platform, where users can share their love of sports and personalize their experience.</p>
+                  <img id="profile-img" src="../static/profile.png" alt="App Interface">
+              </section>
+              <section id="motivation">
+                  <h2>Motivation</h2>
+                  <p>This domain is lucrative and mathematically intriguing, with the sports betting market seeing exponential growth. Our app explores inefficiencies in this market.</p>
+                  <p>While other platforms provide valuable odds aggregation, they often lack quick, real-time arbitrage opportunities. Our app fills this gap with its real-time, data-centric approach, with the added benefit of having historical data as well!</p>
+                  <img id="arbitrage-img" src="../static/arbitrage.png" alt="Market Growth Graph">
+              </section>
+
+              <section id="check-out">
+                <h2>Check it out</h2>
+                <a href="{{ url_for('lines.search_games')}}">Games</a>
+                <br>
+                <a href="{{ url_for('lines.search_odds')}}">Odds</a>
+                <br>
+                <a href="{{ url_for('auth.sign_up')}}">Sign up to see arbitrage</a>
+          </main>
+          <footer>
+              <p>&copy; 2023 Arbitrage Sports Betting App</p>
+          </footer>
+      </body>
+      </html>
+      
 
 {% endblock%}
   

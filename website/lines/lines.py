@@ -13,7 +13,6 @@ from . import the_odds_api
 lines_ = Blueprint('lines', __name__, template_folder='templates', static_url_path='lines/', static_folder='static')
 
 @lines_.route('/lines/games', methods=['GET'])
-@login_required
 def search_games():
     """
     READ/GET endpoint for the games feature
@@ -91,7 +90,6 @@ def search_games():
     return render_template('games.html', pagination=pagination, games=games, current_user=current_user)
 
 @lines_.route('/lines/odds', methods=['GET'])
-@login_required
 def search_odds():
     """
     READ/GET endpoint for the odds feature
@@ -180,7 +178,7 @@ def search_arbitrage():
     Utilizes pagination to improve query efficiency and make results more digestible
     """
     page = request.args.get('page', 1, type=int)
-    per_page = 10
+    per_page = 7
 
     #Need an alias for this table since we have a home bookmaker and an away bookmaker
     AwayBookmakers = aliased(Bookmakers)

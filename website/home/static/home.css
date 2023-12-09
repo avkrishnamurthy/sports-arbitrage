@@ -1,0 +1,59 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+main {
+    padding: 20px;
+}
+
+h1, h2 {
+    color: #333;
+}
+
+section {
+    margin-bottom: 20px;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin-top: 10px;
+} */
+
+footer {
+    text-align: center;
+    padding: 10px 0;
+    background-color: #333;
+    color: #fff;
+}
+
+@media screen and (max-width: 768px) {
+    main {
+        padding: 10px;
+    }
+}
+
+#profile-img {
+    width: 50%;
+    height: 50%;
+  }
+
+#arbitrage-img {
+    width: 75%;
+    height: 75%;
+}

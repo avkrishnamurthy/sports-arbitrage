@@ -47,7 +47,7 @@ def logout():
 def sign_up():
     #Don't let logged in users sign up again
     if current_user.is_authenticated:
-        return redirect(url_for('home.home', _external=True))
+        return redirect(url_for('users.profile', username=current_user.username, _external=True))
     if request.method == 'POST':
         #POST request means they have submitted sign up
         email = request.form.get('email')
